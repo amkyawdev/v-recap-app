@@ -271,30 +271,18 @@ const VideoEditing: React.FC = () => {
           {/* Main Content */}
           <div className="xl:col-span-3 space-y-4">
             {/* Video Player */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              className="card p-3"
-            >
-              {currentVideo?.url ? (
-                <>
-                  <div className="text-xs text-green-400 mb-1 text-center">
-                    Video loaded: {currentVideo.name}
-                  </div>
-                  <VideoPlayer src={currentVideo.url} />
-                </>
-              ) : (
-                <div className="aspect-video flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl">
-                  <div className="text-center">
-                    <FiVideo className="text-4xl text-white/30 mx-auto mb-3" />
-                    <p className="text-white/50 text-sm">Upload a video to start editing</p>
-                    {currentVideo && (
-                      <p className="text-white/30 text-xs mt-1">currentVideo exists but no URL</p>
-                    )}
-                  </div>
+            {currentVideo?.url ? (
+              <div className="bg-black rounded-xl overflow-hidden">
+                <VideoPlayer src={currentVideo.url} />
+              </div>
+            ) : (
+              <div className="card p-3 aspect-video flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl">
+                <div className="text-center">
+                  <FiVideo className="text-4xl text-white/30 mx-auto mb-3" />
+                  <p className="text-white/50 text-sm">Upload a video to start editing</p>
                 </div>
-              )}
-            </motion.div>
+              </div>
+            )}
 
             {/* Compact Tools Bar */}
             <motion.div

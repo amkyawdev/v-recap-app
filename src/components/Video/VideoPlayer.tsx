@@ -43,31 +43,31 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src }) => {
   const formatTime = (time: number) => `${Math.floor(time / 60)}:${Math.floor(time % 60).toString().padStart(2, '0')}`;
 
   return (
-    <>
+    <div>
       <video
         ref={videoRef}
         src={src}
         preload="auto"
-        className="w-full"
+        className="w-full max-w-full"
         onClick={togglePlay}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        onPlay={handlePlay}
-        onPause={handlePause}
-        onEnded={handleEnded}
+        onPlay={() => setIsPlaying(true)}
+        onPause={() => setIsPlaying(false)}
+        onEnded={() => setIsPlaying(false)}
       />
       
       {/* Controls */}
-      <div className="flex items-center gap-2 p-2 bg-black/80">
-        <button onClick={togglePlay} className="p-1 text-white">
+      <div className="flex items-center gap-3 p-2 bg-gray-900 text-white">
+        <button onClick={togglePlay} className="p-1">
           {isPlaying ? <FiPause /> : <FiPlay />}
         </button>
-        <span className="text-white text-xs">{formatTime(currentTime)}</span>
-        <button onClick={toggleMute} className="p-1 text-white">
+        <span className="text-xs">{formatTime(currentTime)}</span>
+        <button onClick={toggleMute} className="p-1">
           {isMuted ? <FiVolumeX /> : <FiVolume2 />}
         </button>
       </div>
-    </>
+    </div>
   );
 };
 
