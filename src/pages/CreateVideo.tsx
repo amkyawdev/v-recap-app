@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiVideo, FiDownload, FiSettings, FiPlay, FiCheck, 
-  FiFilm, FiFile, FiImage, FiCpu, FiHardDrive
+  FiFilm, FiFile, FiImage, FiCpu, FiHardDrive, FiAlertCircle
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -10,6 +10,7 @@ import { Button } from '../components/Common/Button';
 import { DialogBox } from '../components/Common/DialogBox';
 import { useVideo } from '../contexts/VideoContext';
 import { useSubtitles } from '../contexts/SubtitleContext';
+import { videoProcessor } from '../services/video/processor';
 
 // Render tools
 const renderTools = [
@@ -57,36 +58,81 @@ const CreateVideo: React.FC = () => {
   const [isRendering, setIsRendering] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
+  const [renderError, setRenderError] = useState<string | null>(null);
+  const [outputUrl, setOutputUrl] = useState<string | null>(null);
   
-  
-  
-
   const handleToolClick = (_toolId: string) => {
     // Tool selection handled by state-based UI
   };
 
+  // Convert subtitles to SRT format
+  const generateSRTContent = (): string => {
+    let srt = '';
+    subtitles.forEach((cue, index) => {
+      const startTime = formatSRTTime(cue.startTime);
+      const endTime = formatSRTTime(cue.endTime);
+      srt += `${index + 1}\n${startTime} --> ${endTime}\n${cue.text}\n\n`;
+    });
+    return srt;
+  };
+
+  const formatSRTTime = (seconds: number): string => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 1000);
+    return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
+  };
+
   const handleRender = async () => {
+    if (!currentVideo) {
+      setRenderError('No video to render');
+      return;
+    }
+
     setIsRendering(true);
     setRenderProgress(0);
+    setRenderError(null);
+    setOutputUrl(null);
 
-    // Simulate rendering progress with more detailed steps
-    const steps = [
-      { progress: 10, msg: 'Preparing video...' },
-      { progress: 25, msg: 'Processing video stream...' },
-      { progress: 40, msg: 'Encoding subtitles...' },
-      { progress: 55, msg: 'Applying filters...' },
-      { progress: 70, msg: 'Merging audio...' },
-      { progress: 85, msg: 'Finalizing output...' },
-      { progress: 100, msg: 'Complete!' },
-    ];
+    try {
+      // Step 1: Load FFmpeg
+      setRenderProgress(5);
+      await videoProcessor.load();
+      setRenderProgress(15);
 
-    for (const step of steps) {
-      await new Promise(resolve => setTimeout(resolve, 400 + Math.random() * 400));
-      setRenderProgress(step.progress);
+      // Step 2: If we have subtitles, add them to the video
+      if (subtitles.length > 0) {
+        const srtContent = generateSRTContent();
+        
+        // Get video blob from URL
+        const response = await fetch(currentVideo.url);
+        const videoBlob = await response.blob();
+        
+        setRenderProgress(30);
+        
+        // Add subtitles using FFmpeg
+        const result = await videoProcessor.addSubtitles(videoBlob, srtContent, 'srt');
+        
+        if (result.success && result.outputUrl) {
+          setOutputUrl(result.outputUrl);
+          setRenderProgress(100);
+        } else {
+          throw new Error(result.error || 'Failed to add subtitles');
+        }
+      } else {
+        // No subtitles - just use the original video
+        setOutputUrl(currentVideo.url);
+        setRenderProgress(100);
+      }
+
+      setShowSuccess(true);
+    } catch (err) {
+      console.error('Render error:', err);
+      setRenderError(err instanceof Error ? err.message : 'Failed to render video');
     }
 
     setIsRendering(false);
-    setShowSuccess(true);
   };
 
   const formatDuration = (seconds: number) => {
@@ -316,30 +362,46 @@ const CreateVideo: React.FC = () => {
             </motion.div>
 
             {/* Progress Section */}
-            {isRendering && (
+            {(isRendering || renderError) && (
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 className="card p-6"
               >
-                <div className="text-center mb-4">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                    className="w-16 h-16 rounded-full border-4 border-accent-500 border-t-transparent mx-auto mb-3"
-                  />
-                  <p className="text-white font-medium">Rendering Video...</p>
-                  <p className="text-5xl font-bold text-accent-500 mt-2">{renderProgress}%</p>
-                </div>
-                <div className="h-2 bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
-                    className="h-full bg-gradient-to-r from-accent-500 to-red-500 rounded-full"
-                    style={{ width: `${renderProgress}%` }}
-                  />
-                </div>
-                <p className="text-white/50 text-sm text-center mt-4">
-                  Please wait while processing your video...
-                </p>
+                {isRendering ? (
+                  <>
+                    <div className="text-center mb-4">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
+                        className="w-16 h-16 rounded-full border-4 border-accent-500 border-t-transparent mx-auto mb-3"
+                      />
+                      <p className="text-white font-medium">Rendering Video...</p>
+                      <p className="text-5xl font-bold text-accent-500 mt-2">{renderProgress}%</p>
+                    </div>
+                    <div className="h-2 bg-white/10 rounded-full overflow-hidden">
+                      <motion.div
+                        className="h-full bg-gradient-to-r from-accent-500 to-red-500 rounded-full"
+                        style={{ width: `${renderProgress}%` }}
+                      />
+                    </div>
+                    <p className="text-white/50 text-sm text-center mt-4">
+                      Please wait while processing your video...
+                    </p>
+                  </>
+                ) : renderError ? (
+                  <div className="text-center">
+                    <FiAlertCircle className="text-5xl text-red-400 mx-auto mb-4" />
+                    <p className="text-white font-medium mb-2">Render Failed</p>
+                    <p className="text-white/60 text-sm mb-4">{renderError}</p>
+                    <button
+                      onClick={() => setRenderError(null)}
+                      className="px-6 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-white"
+                    >
+                      Try Again
+                    </button>
+                  </div>
+                ) : null}
               </motion.div>
             )}
           </div>

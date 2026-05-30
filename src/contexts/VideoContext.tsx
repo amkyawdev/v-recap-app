@@ -38,64 +38,51 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Clear previous error
     setErrorMessage(null);
     setConversionProgress(0);
-    setIsConverting(false); // Reset state
+    setIsConverting(false);
     
     const videoUrl = URL.createObjectURL(file);
     
-    // Create video object immediately
-    const newVideo: VideoFile = {
-      id: uuidv4(),
-      file,
-      name: file.name,
-      size: file.size,
-      duration: 0,
-      thumbnail: '',
-      url: videoUrl
-    };
-    
-    console.log('VideoContext: Setting state with new video');
-    
-    // Set state immediately
-    setVideos(prev => [...prev, newVideo]);
-    setCurrentVideo(newVideo);
-    
-    // Check if we can get metadata (this will trigger error if codec not supported)
-    const testVideo = document.createElement('video');
-    testVideo.preload = 'metadata';
-    testVideo.muted = true;
+    // Get video metadata first
+    const tempVideo = document.createElement('video');
+    tempVideo.preload = 'metadata';
+    tempVideo.muted = true;
     
     return new Promise<void>((resolve) => {
-      let timeoutId: ReturnType<typeof setTimeout>;
-      
-      testVideo.onloadedmetadata = () => {
-        console.log('VideoContext: Metadata loaded, duration:', testVideo.duration);
-        clearTimeout(timeoutId);
-        setCurrentVideo(prev => prev ? { ...prev, duration: testVideo.duration } : null);
+      tempVideo.onloadedmetadata = () => {
+        console.log('VideoContext: Metadata loaded, duration:', tempVideo.duration);
+        
+        // Create video object with duration
+        const newVideo: VideoFile = {
+          id: uuidv4(),
+          file,
+          name: file.name,
+          size: file.size,
+          duration: tempVideo.duration,
+          thumbnail: '',
+          url: videoUrl
+        };
+        
+        setVideos(prev => [...prev, newVideo]);
+        setCurrentVideo(newVideo);
+        console.log('VideoContext: Video added successfully');
         resolve();
       };
       
-      testVideo.onerror = () => {
-        console.log('VideoContext: Codec not supported, will convert with FFmpeg');
-        clearTimeout(timeoutId);
-        // Set converting state BEFORE starting conversion to hide error in VideoPlayer
-        setIsConverting(true);
-        setConversionProgress(0);
-        // Start conversion
-        performConversion(file, videoUrl, newVideo.id);
+      tempVideo.onerror = () => {
+        console.error('VideoContext: Failed to load video');
+        setErrorMessage('Failed to load video. Please try a different file.');
         resolve();
       };
       
-      // Timeout after 3 seconds - consider as needing conversion
-      timeoutId = setTimeout(() => {
-        console.log('VideoContext: Timeout, starting conversion');
-        // Set converting state BEFORE starting conversion to hide error in VideoPlayer
-        setIsConverting(true);
-        setConversionProgress(0);
-        performConversion(file, videoUrl, newVideo.id);
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        if (!tempVideo.duration) {
+          setErrorMessage('Failed to load video. Please try a different file.');
+        }
         resolve();
-      }, 3000);
+      }, 5000);
       
-      testVideo.src = videoUrl;
+      tempVideo.src = videoUrl;
     });
   }, []);
 

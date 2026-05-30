@@ -62,7 +62,7 @@ const filterOptions = [
 
 const VideoEditing: React.FC = () => {
   const navigate = useNavigate();
-  const { currentVideo, isConverting, conversionProgress, errorMessage, retryConversion, clearError } = useVideo();
+  const { currentVideo } = useVideo();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showToolPanel, setShowToolPanel] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
@@ -277,14 +277,7 @@ const VideoEditing: React.FC = () => {
               className="card p-3"
             >
               {currentVideo ? (
-                <VideoPlayer 
-                  src={currentVideo.url}
-                  isConverting={isConverting}
-                  conversionProgress={conversionProgress}
-                  errorMessage={errorMessage}
-                  onRetry={retryConversion}
-                  onClearError={clearError}
-                />
+                <VideoPlayer src={currentVideo.url} />
               ) : (
                 <div className="aspect-video flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl">
                   <div className="text-center">
