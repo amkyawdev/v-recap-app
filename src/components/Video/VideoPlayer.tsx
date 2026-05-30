@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
@@ -19,49 +19,24 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
 
-  // Set video src when component mounts or src changes
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !src) return;
-    
-    console.log('VideoPlayer: Setting src to', src);
-    video.src = src;
-    video.load();
-  }, [src]);
+  // Handle video events
+  const handleTimeUpdate = () => {
+    if (videoRef.current) {
+      setCurrentTime(videoRef.current.currentTime);
+      onTimeUpdate?.(videoRef.current.currentTime);
+    }
+  };
 
-  // Event handlers
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
+  const handleLoadedMetadata = () => {
+    if (videoRef.current) {
+      console.log('VideoPlayer: Metadata loaded, duration:', videoRef.current.duration);
+      setDuration(videoRef.current.duration);
+    }
+  };
 
-    const handleTimeUpdate = () => {
-      setCurrentTime(video.currentTime);
-      onTimeUpdate?.(video.currentTime);
-    };
-
-    const handleLoadedMetadata = () => {
-      console.log('VideoPlayer: Metadata loaded, duration:', video.duration);
-      setDuration(video.duration);
-    };
-
-    const handlePlay = () => setIsPlaying(true);
-    const handlePause = () => setIsPlaying(false);
-    const handleEnded = () => setIsPlaying(false);
-
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('play', handlePlay);
-    video.addEventListener('pause', handlePause);
-    video.addEventListener('ended', handleEnded);
-
-    return () => {
-      video.removeEventListener('timeupdate', handleTimeUpdate);
-      video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('play', handlePlay);
-      video.removeEventListener('pause', handlePause);
-      video.removeEventListener('ended', handleEnded);
-    };
-  }, [onTimeUpdate]);
+  const handlePlay = () => setIsPlaying(true);
+  const handlePause = () => setIsPlaying(false);
+  const handleEnded = () => setIsPlaying(false);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -102,10 +77,16 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
     >
       <video
         ref={videoRef}
-        preload="metadata"
+        src={src}
+        preload="auto"
         playsInline
-        className="w-full h-full object-contain"
         onClick={togglePlay}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onEnded={handleEnded}
+        className="w-full h-full object-contain bg-gray-900"
       />
 
       {/* Play/Pause Overlay */}
