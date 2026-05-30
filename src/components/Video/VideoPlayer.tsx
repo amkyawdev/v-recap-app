@@ -45,16 +45,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       setHasError(false);
     };
 
-    const handleError = () => {
-      const error = video.error;
+    const handleError = (e: Event) => {
+      const target = e.target as HTMLVideoElement;
+      const error = target.error;
       console.error('VideoPlayer: Video error', error);
-      let message = 'Unknown error';
+      let message = 'Video not supported';
       if (error) {
+        console.error('Error code:', error.code);
+        console.error('Error message:', error.message);
         switch (error.code) {
           case 1: message = 'Video loading aborted'; break;
-          case 2: message = 'Network error'; break;
-          case 3: message = 'Decoding error'; break;
-          case 4: message = 'Video not supported'; break;
+          case 2: message = 'Network error - check connection'; break;
+          case 3: message = 'Decoding error - file may be corrupted'; break;
+          case 4: message = 'Video format not supported by browser'; break;
           default: message = error.message || 'Unknown error';
         }
       }
@@ -133,11 +136,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       <video
         ref={videoRef}
         src={src}
-        crossOrigin="anonymous"
         controls
         preload="auto"
         playsInline
-        muted
         className="w-full h-full object-contain"
         onClick={togglePlay}
       />
