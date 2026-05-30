@@ -332,12 +332,12 @@ const VideoEditing: React.FC = () => {
             </motion.div>
 
             {/* Navigation Buttons */}
-            <div className="flex gap-3">
+            <div className="flex gap-3 mt-4">
               <button
                 onClick={() => navigate('/dashboard')}
                 className="flex-1 btn-secondary py-3 flex items-center justify-center gap-2"
               >
-                ← Back to Dashboard
+                ← Dashboard
               </button>
               {currentVideo && (
                 <button

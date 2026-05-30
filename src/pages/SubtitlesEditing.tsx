@@ -440,7 +440,7 @@ const SubtitlesEditing: React.FC = () => {
       </DialogBox>
 
       {/* Navigation Buttons */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-blue-900 to-transparent">
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-blue-900 via-blue-900/95 to-transparent">
         <div className="max-w-7xl mx-auto flex gap-3">
           <button
             onClick={() => navigate('/video-editing')}
@@ -448,12 +448,18 @@ const SubtitlesEditing: React.FC = () => {
           >
             ← Video Editing
           </button>
+          <button
+            onClick={() => navigate('/dashboard')}
+            className="flex-1 btn-secondary py-3 flex items-center justify-center gap-2"
+          >
+            Dashboard
+          </button>
           {subtitles.length > 0 && (
             <button
               onClick={() => navigate('/create-video')}
               className="flex-1 btn-primary py-3 flex items-center justify-center gap-2"
             >
-              Combined Render → <FiDownload />
+              Render Video → <FiDownload />
             </button>
           )}
         </div>
