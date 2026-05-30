@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FiGrid, FiClock, FiTrendingUp, FiTrash2, 
   FiEdit3, FiCopy, FiEye, FiMoreVertical, FiPlus, FiVideo, FiFileText,
-  FiPlay, FiSettings, FiFolder, FiHardDrive
+  FiPlay, FiSettings, FiFolder, FiHardDrive, FiRefreshCw, FiCheck
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -13,27 +13,88 @@ import { storageService, Project } from '../services/storage/indexedDb';
 import { useVideo } from '../contexts/VideoContext';
 import { useSubtitles } from '../contexts/SubtitleContext';
 
+interface HistoryItem {
+  id: string;
+  videoId: string;
+  videoName: string;
+  videoSize: number;
+  videoDuration: number;
+  videoUrl: string;
+  subtitles: number;
+  effects: number;
+  status: 'draft' | 'editing' | 'completed';
+  createdAt: Date;
+  updatedAt: Date;
+}
+
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { videos, removeVideo } = useVideo();
+  const { videos, currentVideo, removeVideo } = useVideo();
   const { subtitles } = useSubtitles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'recent' | 'favorites'>('all');
-  const [projects, setProjects] = useState<Project[]>([]);
+  const [history, setHistory] = useState<HistoryItem[]>([]);
   const [storageInfo, setStorageInfo] = useState({ used: 0, quota: 0 });
 
+  // Load history from localStorage and sync with videos
   useEffect(() => {
-    loadProjects();
+    loadHistory();
     loadStorageInfo();
   }, []);
 
-  const loadProjects = async () => {
-    try {
-      const allProjects = await storageService.getAllProjects();
-      setProjects(allProjects);
-    } catch (error) {
-      console.error('Failed to load projects:', error);
+  // Sync videos to history when videos change
+  useEffect(() => {
+    if (videos.length > 0) {
+      syncVideosToHistory();
     }
+  }, [videos]);
+
+  const loadHistory = () => {
+    try {
+      const savedHistory = localStorage.getItem('videoHistory');
+      if (savedHistory) {
+        const parsed = JSON.parse(savedHistory);
+        setHistory(parsed.map((h: any) => ({
+          ...h,
+          createdAt: new Date(h.createdAt),
+          updatedAt: new Date(h.updatedAt)
+        })));
+      }
+    } catch (error) {
+      console.error('Failed to load history:', error);
+    }
+  };
+
+  const syncVideosToHistory = () => {
+    // Convert videos from context to history items
+    const videoHistoryItems: HistoryItem[] = videos.map(v => ({
+      id: v.id,
+      videoId: v.id,
+      videoName: v.name,
+      videoSize: v.size,
+      videoDuration: v.duration,
+      videoUrl: v.url,
+      subtitles: subtitles.length,
+      effects: 0,
+      status: 'editing' as const,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }));
+
+    // Merge with existing history (keep projects that might have more info)
+    setHistory(prev => {
+      const existingIds = new Set(videoHistoryItems.map(v => v.videoId));
+      const additionalItems = prev.filter(h => !existingIds.has(h.videoId));
+      return [...videoHistoryItems, ...additionalItems];
+    });
+
+    // Save to localStorage
+    localStorage.setItem('videoHistory', JSON.stringify(videoHistoryItems));
+  };
+
+  const saveHistory = (newHistory: HistoryItem[]) => {
+    setHistory(newHistory);
+    localStorage.setItem('videoHistory', JSON.stringify(newHistory));
   };
 
   const loadStorageInfo = async () => {
@@ -45,19 +106,22 @@ const Dashboard: React.FC = () => {
     }
   };
 
-  const handleDeleteProject = async (id: string) => {
-    try {
-      await storageService.deleteProject(id);
-      await loadProjects();
-      removeVideo(id);
-    } catch (error) {
-      console.error('Failed to delete project:', error);
-    }
+  const handleDeleteHistory = (id: string) => {
+    const newHistory = history.filter(h => h.id !== id);
+    saveHistory(newHistory);
+    removeVideo(id);
   };
 
-  const handleOpenProject = (project: Project) => {
-    storageService.addToRecent(project);
+  const handleOpenHistory = (item: HistoryItem) => {
+    // Navigate to video editing
     navigate('/video-editing');
+  };
+
+  const handleMarkComplete = (id: string) => {
+    const newHistory = history.map(h => 
+      h.id === id ? { ...h, status: 'completed' as const, updatedAt: new Date() } : h
+    );
+    saveHistory(newHistory);
   };
 
   const formatDuration = (seconds: number) => {
@@ -98,9 +162,24 @@ const Dashboard: React.FC = () => {
     return d.toLocaleDateString();
   };
 
-  const totalProjects = projects.length;
-  const totalDuration = projects.reduce((acc, p) => acc + (p.videoDuration || 0), 0);
-  const totalSubtitles = projects.reduce((acc, p) => acc + (p.subtitles?.length || 0), 0);
+  // Get filtered history based on active tab
+  const getFilteredHistory = () => {
+    switch (activeTab) {
+      case 'recent':
+        return [...history].sort((a, b) => 
+          new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+        ).slice(0, 10);
+      case 'favorites':
+        return history.filter(h => h.status === 'completed');
+      default:
+        return history;
+    }
+  };
+
+  const totalProjects = history.length;
+  const totalDuration = history.reduce((acc, h) => acc + (h.videoDuration || 0), 0);
+  const totalSubtitles = history.reduce((acc, h) => acc + (h.subtitles || 0), 0);
+  const completedCount = history.filter(h => h.status === 'completed').length;
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -110,6 +189,8 @@ const Dashboard: React.FC = () => {
       default: return 'bg-gray-500';
     }
   };
+
+  const filteredHistory = getFilteredHistory();
 
   return (
     <div className="min-h-screen">
@@ -135,7 +216,7 @@ const Dashboard: React.FC = () => {
         </motion.div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -147,7 +228,7 @@ const Dashboard: React.FC = () => {
               <FiFolder className="text-blue-400" />
             </div>
             <div className="text-2xl font-bold text-white">{totalProjects}</div>
-            <div className="text-sm text-white/50 mt-1">Total projects</div>
+            <div className="text-sm text-white/50 mt-1">Total</div>
           </motion.div>
           
           <motion.div
@@ -177,7 +258,7 @@ const Dashboard: React.FC = () => {
               <FiFileText className="text-purple-400" />
             </div>
             <div className="text-2xl font-bold text-white">{totalSubtitles}</div>
-            <div className="text-sm text-white/50 mt-1">Subtitle items</div>
+            <div className="text-sm text-white/50 mt-1">Items</div>
           </motion.div>
 
           <motion.div
@@ -187,24 +268,20 @@ const Dashboard: React.FC = () => {
             className="card p-4"
           >
             <div className="flex items-center justify-between mb-2">
-              <span className="text-white/60 text-sm">Storage</span>
-              <FiHardDrive className="text-orange-400" />
+              <span className="text-white/60 text-sm">Completed</span>
+              <FiCheck className="text-green-400" />
             </div>
-            <div className="text-2xl font-bold text-white">
-              {formatStorageSize(storageInfo.used)}
-            </div>
-            <div className="text-sm text-white/50 mt-1">
-              of {formatStorageSize(storageInfo.quota)}
-            </div>
+            <div className="text-2xl font-bold text-white">{completedCount}</div>
+            <div className="text-sm text-white/50 mt-1">Done</div>
           </motion.div>
         </div>
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto no-scrollbar">
           {[
-            { id: 'all', label: 'All Projects', count: projects.length },
-            { id: 'recent', label: 'Recent', count: projects.length },
-            { id: 'favorites', label: 'Favorites', count: 0 },
+            { id: 'all', label: 'All', count: history.length },
+            { id: 'recent', label: 'Recent', count: Math.min(history.length, 10) },
+            { id: 'favorites', label: 'Completed', count: completedCount },
           ].map((tab) => (
             <button
               key={tab.id}
@@ -220,118 +297,79 @@ const Dashboard: React.FC = () => {
           ))}
         </div>
 
-        {/* Projects Grid */}
-        {projects.length === 0 ? (
+        {/* History List */}
+        {filteredHistory.length === 0 ? (
           <div className="card p-8 text-center">
             <FiVideo className="text-5xl text-white/20 mx-auto mb-4" />
             <h3 className="text-xl font-semibold text-white mb-2">No Projects Yet</h3>
-            <p className="text-white/60 mb-4">Create your first video project</p>
+            <p className="text-white/60 mb-4">Upload a video to start editing</p>
             <Button onClick={() => navigate('/video-editing')} icon={<FiPlus />}>
               Start New Project
             </Button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {projects.map((project, index) => {
-              const status = project.status || 'draft';
-              return (
-                <motion.div
-                  key={project.id}
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: index * 0.05 }}
-                  className="card overflow-hidden group"
-                >
-                  {/* Thumbnail */}
-                  <div 
-                    className="relative aspect-video bg-gradient-to-br from-blue-800 to-blue-900 flex items-center justify-center cursor-pointer"
-                    onClick={() => handleOpenProject(project)}
+          <div className="space-y-3">
+            {filteredHistory.map((item, index) => (
+              <motion.div
+                key={item.id}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.05 }}
+                className="card p-4 flex items-center gap-4 hover:bg-white/5 transition-colors"
+              >
+                {/* Thumbnail */}
+                <div className="w-20 h-14 rounded-lg bg-gradient-to-br from-blue-800 to-blue-900 flex items-center justify-center flex-shrink-0 cursor-pointer"
+                     onClick={() => handleOpenHistory(item)}>
+                  <span className="text-2xl">🎬</span>
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleOpenHistory(item)}>
+                  <div className="flex items-center gap-2 mb-1">
+                    <h3 className="font-semibold text-white truncate">{item.videoName}</h3>
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${getStatusColor(item.status)} text-white capitalize`}>
+                      {item.status}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-3 text-xs text-white/50">
+                    <span className="flex items-center gap-1">
+                      <FiClock size={12} />
+                      {formatDate(item.updatedAt)}
+                    </span>
+                    <span>{formatDuration(item.videoDuration)}</span>
+                    <span>{formatFileSize(item.videoSize)}</span>
+                    <span>{item.subtitles} subs</span>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  {item.status !== 'completed' && (
+                    <button
+                      onClick={() => handleMarkComplete(item.id)}
+                      className="p-2 rounded-lg hover:bg-green-500/20 text-green-400 transition-colors"
+                      title="Mark complete"
+                    >
+                      <FiCheck size={18} />
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => handleOpenHistory(item)}
+                    className="p-2 rounded-lg hover:bg-blue-500/20 text-blue-400 transition-colors"
+                    title="Edit"
                   >
-                    <span className="text-5xl">🎬</span>
-                    
-                    {/* Overlay */}
-                    <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-3">
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleOpenProject(project);
-                        }}
-                        className="p-3 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
-                      >
-                        <FiEdit3 className="text-white" />
-                      </button>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          navigate('/subtitles-editing');
-                        }}
-                        className="p-3 rounded-full bg-purple-500/40 hover:bg-purple-500/60 transition-colors"
-                      >
-                        <FiFileText className="text-white" />
-                      </button>
-                    </div>
-
-                    {/* Status Badge */}
-                    <div className={`absolute top-3 left-3 px-2 py-1 rounded-lg text-xs font-medium ${getStatusColor(status)} text-white capitalize`}>
-                      {status}
-                    </div>
-
-                    {/* Duration & Size */}
-                    <div className="absolute bottom-3 right-3 flex gap-2">
-                      {project.videoDuration && (
-                        <div className="px-2 py-1 rounded bg-black/50 text-white text-xs">
-                          {formatDuration(project.videoDuration)}
-                        </div>
-                      )}
-                      {project.videoSize && (
-                        <div className="px-2 py-1 rounded bg-black/50 text-white text-xs">
-                          {formatFileSize(project.videoSize)}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* Info */}
-                  <div className="p-4">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0 cursor-pointer" onClick={() => handleOpenProject(project)}>
-                        <h3 className="font-semibold text-white mb-1 truncate">{project.name}</h3>
-                        <div className="flex items-center gap-2 text-xs text-white/50">
-                          <FiClock size={12} />
-                          <span>{formatDate(project.updatedAt)}</span>
-                        </div>
-                      </div>
-                      <button className="p-2 rounded-lg hover:bg-white/10 transition-colors">
-                        <FiMoreVertical className="text-white/50" />
-                      </button>
-                    </div>
-
-                    {/* Stats */}
-                    <div className="flex items-center gap-4 text-xs text-white/50 mb-3">
-                      <span>{project.subtitles?.length || 0} subtitles</span>
-                      <span>{project.effects?.length || 0} effects</span>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-2 mt-4 pt-4 border-t border-white/10">
-                      <button 
-                        onClick={() => handleOpenProject(project)}
-                        className="flex-1 flex items-center justify-center gap-2 py-2 rounded-lg bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 text-sm transition-colors"
-                      >
-                        <FiEdit3 size={14} />
-                        Edit
-                      </button>
-                      <button 
-                        onClick={() => handleDeleteProject(project.id)}
-                        className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 text-sm transition-colors"
-                      >
-                        <FiTrash2 size={14} />
-                      </button>
-                    </div>
-                  </div>
-                </motion.div>
-              );
-            })}
+                    <FiEdit3 size={18} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteHistory(item.id)}
+                    className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
+                    title="Delete"
+                  >
+                    <FiTrash2 size={18} />
+                  </button>
+                </div>
+              </motion.div>
+            ))}
           </div>
         )}
       </div>
