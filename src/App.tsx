@@ -9,6 +9,7 @@ import Dashboard from './pages/Dashboard';
 import VideoEditing from './pages/VideoEditing';
 import SubtitlesEditing from './pages/SubtitlesEditing';
 import CreateVideo from './pages/CreateVideo';
+import Settings from './pages/Settings';
 import About from './pages/About';
 
 function App() {
@@ -25,6 +26,7 @@ function App() {
                 <Route path="/video-editing" element={<VideoEditing />} />
                 <Route path="/subtitles-editing" element={<SubtitlesEditing />} />
                 <Route path="/create-video" element={<CreateVideo />} />
+                <Route path="/settings" element={<Settings />} />
                 <Route path="/about" element={<About />} />
               </Routes>
             </div>

@@ -4,4 +4,5 @@ export { default as Dashboard } from './Dashboard';
 export { default as VideoEditing } from './VideoEditing';
 export { default as SubtitlesEditing } from './SubtitlesEditing';
 export { default as CreateVideo } from './CreateVideo';
+export { default as Settings } from './Settings';
 export { default as About } from './About';

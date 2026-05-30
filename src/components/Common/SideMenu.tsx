@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiHome, FiGrid, FiPlay, FiFileText, FiVideo, 
-  FiInfo, FiSettings, FiLogOut, FiTrendingUp 
+  FiInfo, FiSettings, FiLogOut, FiTrendingUp, FiKey
 } from 'react-icons/fi';
 
 interface SideMenuProps {
@@ -20,6 +20,7 @@ export const SideMenu: React.FC<SideMenuProps> = ({ isOpen, onClose }) => {
     { icon: FiPlay, label: 'Video Editing', path: '/video-editing' },
     { icon: FiFileText, label: 'Subtitles', path: '/subtitles-editing' },
     { icon: FiVideo, label: 'Create Video', path: '/create-video' },
+    { icon: FiKey, label: 'API Settings', path: '/settings' },
     { icon: FiTrendingUp, label: 'Analytics', path: '/analytics' },
     { icon: FiInfo, label: 'About', path: '/about' },
   ];
