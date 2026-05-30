@@ -17,10 +17,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [showControls, setShowControls] = useState(true);
   const [videoError, setVideoError] = useState<string>('');
 
-  // Log when src changes
+  // Clear error when src changes
   useEffect(() => {
     setVideoError('');
   }, [src]);
@@ -93,15 +92,11 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   };
 
   return (
-    <div 
-      className="relative rounded-2xl overflow-hidden bg-black aspect-video group"
-      onMouseEnter={() => setShowControls(true)}
-      onMouseLeave={() => setShowControls(false)}
-    >
+    <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
       <video
         ref={videoRef}
         src={src}
-        preload="metadata"
+        preload="auto"
         playsInline
         onClick={togglePlay}
         onTimeUpdate={handleTimeUpdate}
@@ -111,7 +106,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
         onPause={handlePause}
         onEnded={handleEnded}
         onError={handleError}
-        className="w-full h-full object-contain"
+        className="w-full h-full"
       />
 
       {/* Play/Pause Overlay */}
@@ -131,12 +126,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       {/* Custom Controls Bar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: showControls ? 1 : 0, y: showControls ? 0 : 20 }}
+        animate={{ opacity: 1, y: 0 }}
         className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
       >
         {/* Progress Bar */}
         <div 
-          className="w-full h-1 bg-white/30 rounded-full mb-4 cursor-pointer group/progress"
+          className="w-full h-1 bg-white/30 rounded-full mb-4 cursor-pointer"
           onClick={(e) => {
             const rect = e.currentTarget.getBoundingClientRect();
             const percent = (e.clientX - rect.left) / rect.width;
@@ -144,11 +139,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
           }}
         >
           <div 
-            className="h-full bg-accent-500 rounded-full relative"
-            style={{ width: `${(currentTime / duration) * 100}%` }}
-          >
-            <div className="absolute right-0 top-1/2 -translate-y-1/2 w-3 h-3 bg-white rounded-full opacity-0 group-hover/progress:opacity-100 transition-opacity" />
-          </div>
+            className="h-full bg-accent-500 rounded-full"
+            style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+          />
         </div>
 
         {/* Buttons */}
