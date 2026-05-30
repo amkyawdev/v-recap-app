@@ -29,24 +29,45 @@ const MainPage: React.FC = () => {
     if (acceptedFiles.length === 0) return;
     
     const file = acceptedFiles[0];
+    console.log('MainPage: File selected', file.name, file.type, file.size);
+    
+    // Validate file type
+    const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'];
+    const validExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    
+    if (!validTypes.includes(file.type) && !validExtensions.includes(ext)) {
+      setUploadStatus({
+        id: `invalid-${Date.now()}`,
+        name: file.name,
+        progress: 0,
+        status: 'error',
+        message: 'Unsupported video format'
+      });
+      setTimeout(() => setUploadStatus(null), 3000);
+      return;
+    }
+    
     const tempId = `upload-${Date.now()}`;
     
     setUploadStatus({
       id: tempId,
       name: file.name,
-      progress: 0,
+      progress: 10,
       status: 'uploading'
     });
 
     try {
       // Simulate progress
-      for (let progress = 0; progress <= 50; progress += 25) {
+      for (let progress = 20; progress <= 50; progress += 15) {
         await new Promise(resolve => setTimeout(resolve, 100));
         setUploadStatus(prev => prev ? { ...prev, progress } : null);
       }
 
       // Add video
+      console.log('MainPage: Calling addVideo...');
       await addVideo(file);
+      console.log('MainPage: addVideo completed');
       
       setUploadStatus({
         id: tempId,
@@ -61,6 +82,7 @@ const MainPage: React.FC = () => {
       }, 500);
 
     } catch (err) {
+      console.error('MainPage: Error adding video', err);
       setUploadStatus({
         id: tempId,
         name: file.name,
@@ -69,8 +91,8 @@ const MainPage: React.FC = () => {
         message: err instanceof Error ? err.message : 'Upload failed'
       });
       
-      // Clear error after 3 seconds
-      setTimeout(() => setUploadStatus(null), 3000);
+      // Clear error after 5 seconds
+      setTimeout(() => setUploadStatus(null), 5000);
     }
   }, [addVideo, navigate]);
 
