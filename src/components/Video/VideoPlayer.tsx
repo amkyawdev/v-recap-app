@@ -47,16 +47,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
   
-  const handleError = () => {
-    if (videoRef.current?.error) {
-      const error = videoRef.current.error;
-      let message = '';
-      if (error.code === 4) {
-        message = 'Video format not supported';
-      } else {
-        message = 'Video error';
-      }
-      setVideoError(message);
+  const handleError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    console.error('VideoPlayer: Error!', video.error);
+    if (video.error?.code === 4) {
+      setVideoError('Format not supported');
+    } else {
+      setVideoError('Video error');
     }
   };
 
