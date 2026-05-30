@@ -48,22 +48,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
   
-  const handleError = () => {
-    if (videoRef.current?.error) {
-      const error = videoRef.current.error;
-      console.error('VideoPlayer: Error code:', error.code);
-      
-      let message = '';
+  const handleError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = e.currentTarget;
+    const error = video.error;
+    console.error('VideoPlayer: Error code:', error?.code);
+    console.error('VideoPlayer: Error message:', error?.message);
+    
+    let message = '';
+    if (error) {
       switch (error.code) {
         case 1: message = 'Loading aborted'; break;
         case 2: message = 'Network error'; break;
-        case 3: message = 'Video codec not supported - converting...'; break;
-        case 4: message = 'Video format not supported by browser'; break;
-        default: message = `Unknown error (${error.code})`;
+        case 3: message = 'Decoding error'; break;
+        case 4: message = 'Format not supported'; break;
+        default: message = `Error: ${error.code}`;
       }
-      
-      setVideoError(message);
+    } else {
+      message = 'Unknown error';
     }
+    
+    setVideoError(message);
   };
 
   const togglePlay = () => {
