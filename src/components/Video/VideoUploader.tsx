@@ -13,82 +13,92 @@ interface UploadStatus {
 }
 
 export const VideoUploader: React.FC = () => {
-  const { addVideo, removeVideo, videos, currentVideo } = useVideo();
+  const { addVideo, removeVideo, currentVideo } = useVideo();
   const [uploadStatuses, setUploadStatuses] = useState<UploadStatus[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  const onDrop = useCallback(async (acceptedFiles: File[], rejectedFiles: any[]) => {
-    // Handle rejected files
-    if (rejectedFiles && rejectedFiles.length > 0) {
-      rejectedFiles.forEach((rejected: any) => {
-        const file = rejected.file;
-        const errorMessage = rejected.errors?.[0]?.message || 'File rejected';
-        
-        const tempId = `upload-${Date.now()}-${Math.random()}`;
-        setUploadStatuses(prev => [...prev, {
-          id: tempId,
-          name: file.name,
-          progress: 0,
-          status: 'error',
-          message: errorMessage
-        }]);
-        
-        // Remove error after 3 seconds
-        setTimeout(() => {
-          setUploadStatuses(prev => prev.filter(s => s.id !== tempId));
-        }, 3000);
-      });
-    }
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    setError(null);
     
-    // Handle accepted files
-    for (const file of acceptedFiles) {
-      const tempId = `upload-${Date.now()}-${Math.random()}`;
-      
-      setUploadStatuses(prev => [...prev, {
-        id: tempId,
-        name: file.name,
-        progress: 0,
-        status: 'uploading'
-      }]);
+    if (acceptedFiles.length === 0) {
+      return;
+    }
 
-      try {
-        // Simulate initial progress
-        for (let progress = 0; progress <= 30; progress += 10) {
-          await new Promise(resolve => setTimeout(resolve, 50));
-          setUploadStatuses(prev => prev.map(s => 
-            s.id === tempId ? { ...s, progress } : s
-          ));
-        }
+    const file = acceptedFiles[0]; // Process one file at a time
+    const tempId = `upload-${Date.now()}`;
+    
+    setUploadStatuses(prev => [...prev, {
+      id: tempId,
+      name: file.name,
+      progress: 0,
+      status: 'uploading'
+    }]);
 
-        await addVideo(file);
-        
+    try {
+      // Update progress
+      for (let progress = 0; progress <= 50; progress += 25) {
+        await new Promise(resolve => setTimeout(resolve, 100));
         setUploadStatuses(prev => prev.map(s => 
-          s.id === tempId ? { ...s, status: 'success' as const, progress: 100 } : s
+          s.id === tempId ? { ...s, progress } : s
         ));
-
-        // Remove success status after 2 seconds
-        setTimeout(() => {
-          setUploadStatuses(prev => prev.filter(s => s.id !== tempId));
-        }, 2000);
-
-      } catch (error) {
-        setUploadStatuses(prev => prev.map(s => 
-          s.id === tempId ? { 
-            ...s, 
-            status: 'error' as const,
-            message: error instanceof Error ? error.message : 'Upload failed'
-          } : s
-        ));
-        
-        // Remove error after 3 seconds
-        setTimeout(() => {
-          setUploadStatuses(prev => prev.filter(s => s.id !== tempId));
-        }, 3000);
       }
+
+      // Add video to context
+      await addVideo(file);
+      
+      setUploadStatuses(prev => prev.map(s => 
+        s.id === tempId ? { ...s, status: 'success' as const, progress: 100 } : s
+      ));
+
+      // Remove success status after 2 seconds
+      setTimeout(() => {
+        setUploadStatuses(prev => prev.filter(s => s.id !== tempId));
+      }, 2000);
+
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Upload failed';
+      setError(errorMessage);
+      
+      setUploadStatuses(prev => prev.map(s => 
+        s.id === tempId ? { 
+          ...s, 
+          status: 'error' as const,
+          message: errorMessage
+        } : s
+      ));
+      
+      // Remove error after 3 seconds
+      setTimeout(() => {
+        setUploadStatuses(prev => prev.filter(s => s.id !== tempId));
+      }, 3000);
     }
   }, [addVideo]);
 
+  const onDropRejected = useCallback((rejected: any[]) => {
+    if (rejected && rejected.length > 0) {
+      const rejectedFile = rejected[0].file;
+      const errorMsg = rejected[0].errors?.[0]?.message || 'File rejected';
+      
+      setError(`${rejectedFile.name}: ${errorMsg}`);
+      
+      const tempId = `upload-${Date.now()}`;
+      setUploadStatuses(prev => [...prev, {
+        id: tempId,
+        name: rejectedFile.name,
+        progress: 0,
+        status: 'error',
+        message: errorMsg
+      }]);
+      
+      setTimeout(() => {
+        setUploadStatuses(prev => prev.filter(s => s.id !== tempId));
+      }, 3000);
+    }
+  }, []);
+
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
+    onDropRejected,
     accept: {
       'video/mp4': ['.mp4'],
       'video/quicktime': ['.mov'],
@@ -96,22 +106,16 @@ export const VideoUploader: React.FC = () => {
       'video/webm': ['.webm'],
       'video/x-matroska': ['.mkv']
     },
-    multiple: true,
+    multiple: false,
     maxSize: 500 * 1024 * 1024, // 500MB
-    maxFiles: 5,
-    useFsAccessApi: false,
-    onDropRejected: (rejected) => {
-      console.log('Rejected files:', rejected);
-    }
+    maxFiles: 1
   });
 
   return (
     <div className="space-y-4">
       {/* Drop Zone */}
-      <motion.div
+      <div
         {...getRootProps()}
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
         className={`card p-6 text-center cursor-pointer transition-all duration-300 ${
           isDragActive ? 'border-accent-500 bg-accent-500/10' : 'hover:border-white/40'
         }`}
@@ -127,12 +131,23 @@ export const VideoUploader: React.FC = () => {
           {isDragActive ? 'Drop here' : 'Upload Video'}
         </h3>
         <p className="text-white/60 text-xs">
-          MP4, MOV, AVI, WebM, MKV
+          Click or drag to upload
         </p>
         <p className="text-white/40 text-xs mt-1">
-          Max 500MB
+          MP4, MOV, AVI, WebM, MKV (Max 500MB)
         </p>
-      </motion.div>
+      </div>
+
+      {/* Error Message */}
+      {error && (
+        <div className="p-3 rounded-lg bg-red-500/20 text-red-400 text-sm flex items-center gap-2">
+          <FiAlertCircle />
+          <span>{error}</span>
+          <button onClick={() => setError(null)} className="ml-auto">
+            <FiX />
+          </button>
+        </div>
+      )}
 
       {/* Upload Status */}
       <AnimatePresence>
@@ -179,7 +194,7 @@ export const VideoUploader: React.FC = () => {
                   <p className="text-xs text-red-400 mt-1">{status.message}</p>
                 )}
                 {status.status === 'success' && (
-                  <p className="text-xs text-green-400 mt-1">Done!</p>
+                  <p className="text-xs text-green-400 mt-1">Upload complete!</p>
                 )}
               </div>
             </div>
@@ -199,8 +214,15 @@ export const VideoUploader: React.FC = () => {
               <p className="text-white text-sm truncate">{currentVideo.name}</p>
               <p className="text-xs text-white/50">
                 {((currentVideo.size || 0) / (1024 * 1024)).toFixed(1)} MB
+                {currentVideo.duration && ` • ${Math.floor(currentVideo.duration / 60)}:${Math.floor(currentVideo.duration % 60).toString().padStart(2, '0')}`}
               </p>
             </div>
+            <button 
+              onClick={() => removeVideo(currentVideo.id)}
+              className="p-2 rounded-lg hover:bg-red-500/20 text-red-400 transition-colors"
+            >
+              <FiX />
+            </button>
           </div>
         </div>
       )}
