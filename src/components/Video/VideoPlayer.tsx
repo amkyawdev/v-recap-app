@@ -18,22 +18,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
-  const [hasError, setHasError] = useState(false);
-  const [errorMessage, setErrorMessage] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
 
+  // Set video src when component mounts or src changes
   useEffect(() => {
-    setHasError(false);
-    setErrorMessage('');
-    setIsLoading(true);
-    console.log('VideoPlayer: Loading video from:', src);
+    const video = videoRef.current;
+    if (!video || !src) return;
     
+    console.log('VideoPlayer: Setting src to', src);
+    video.src = src;
+    video.load();
+  }, [src]);
+
+  // Event handlers
+  useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
-
-    // Reset video element
-    video.removeAttribute('src');
-    video.load();
 
     const handleTimeUpdate = () => {
       setCurrentTime(video.currentTime);
@@ -43,55 +42,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
     const handleLoadedMetadata = () => {
       console.log('VideoPlayer: Metadata loaded, duration:', video.duration);
       setDuration(video.duration);
-      setHasError(false);
-      setIsLoading(false);
     };
 
-    const handleCanPlay = () => {
-      console.log('VideoPlayer: Can play');
-      setHasError(false);
-      setIsLoading(false);
-    };
-
-    const handleStalled = () => {
-      console.log('VideoPlayer: Loading stalled');
-      setIsLoading(true);
-    };
-
-    const handleError = () => {
-      const error = video.error;
-      console.error('VideoPlayer: Video error', error);
-      let message = 'Video format not supported';
-      if (error) {
-        console.log('Error code:', error.code);
-        console.log('Error message:', error.message);
-        switch (error.code) {
-          case 1: message = 'Video loading aborted'; break;
-          case 2: message = 'Network error'; break;
-          case 3: message = 'Decoding error'; break;
-          case 4: message = 'Video codec not supported'; break;
-          default: message = error.message || 'Video not supported';
-        }
-      }
-      setErrorMessage(message);
-      setHasError(true);
-      setIsLoading(false);
-    };
+    const handlePlay = () => setIsPlaying(true);
+    const handlePause = () => setIsPlaying(false);
+    const handleEnded = () => setIsPlaying(false);
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
-    video.addEventListener('canplay', handleCanPlay);
-    video.addEventListener('stalled', handleStalled);
-    video.addEventListener('error', handleError);
+    video.addEventListener('play', handlePlay);
+    video.addEventListener('pause', handlePause);
+    video.addEventListener('ended', handleEnded);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
-      video.removeEventListener('canplay', handleCanPlay);
-      video.removeEventListener('stalled', handleStalled);
-      video.removeEventListener('error', handleError);
+      video.removeEventListener('play', handlePlay);
+      video.removeEventListener('pause', handlePause);
+      video.removeEventListener('ended', handleEnded);
     };
-  }, [src, onTimeUpdate]);
+  }, [onTimeUpdate]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -130,44 +100,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      {hasError ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-4">
-          <FiAlertCircle className="text-4xl text-red-400 mb-2" />
-          <p className="text-white/60 text-sm">Video cannot be played</p>
-          <p className="text-red-400 text-xs mt-1 text-center max-w-xs">{errorMessage}</p>
-          <p className="text-white/30 text-xs mt-2">URL: {src ? src.substring(0, 30) + '...' : 'empty'}</p>
-          <button 
-            onClick={() => {
-              // Force reload by toggling key
-              setHasError(false);
-              setErrorMessage('');
-              if (videoRef.current) {
-                videoRef.current.load();
-              }
-            }}
-            className="mt-4 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white text-sm font-semibold rounded-xl transition-all shadow-lg"
-          >
-            Retry Loading
-          </button>
-        </div>
-      ) : isLoading ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black">
-          <div className="w-12 h-12 border-4 border-blue-500 border-t-transparent rounded-full animate-spin mb-4"></div>
-          <p className="text-white/60 text-sm">Loading video...</p>
-          <p className="text-white/30 text-xs mt-2">Please wait</p>
-        </div>
-      ) : (
-        <>
       <video
         ref={videoRef}
-        src={src || undefined}
         preload="metadata"
         playsInline
         className="w-full h-full object-contain"
         onClick={togglePlay}
-        onPlay={() => setIsPlaying(true)}
-        onPause={() => setIsPlaying(false)}
-        onEnded={() => setIsPlaying(false)}
       />
 
       {/* Play/Pause Overlay */}
@@ -256,8 +194,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
           </div>
         </div>
       </motion.div>
-        </>
-      )}
     </div>
   );
 };
