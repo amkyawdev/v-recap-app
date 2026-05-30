@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import { FiUpload, FiFileText, FiX, FiCheck, FiAlertCircle } from 'react-icons/fi';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSubtitles } from '../../contexts/SubtitleContext';
@@ -148,7 +148,7 @@ export const SubtitleUploader: React.FC = () => {
           ));
         }
         
-        importSubtitles(cues.map((cue, index) => ({
+        importSubtitles(cues.map((cue) => ({
           id: uuidv4(),
           startTime: cue.startTime,
           endTime: cue.endTime,

@@ -16,11 +16,6 @@ export const SubtitleEditor: React.FC = () => {
     return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')},${ms.toString().padStart(3, '0')}`;
   };
 
-  const parseTime = (timeStr: string) => {
-    const match = timeStr.match(/(\d{2}):(\d{2}):(\d{2}),(\d{3})/);
-    if (!match) return 0;
-    return parseInt(match[1]) * 3600 + parseInt(match[2]) * 60 + parseInt(match[3]) + parseInt(match[4]) / 1000;
-  };
 
   const startEditing = (subtitle: SubtitleCue) => {
     setEditingId(subtitle.id);

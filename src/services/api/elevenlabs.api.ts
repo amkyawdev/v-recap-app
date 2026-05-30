@@ -7,7 +7,7 @@ export interface VoiceRequest {
   model?: string;
 }
 
-export const synthesizeVoice = async (request: VoiceRequest): Promise<Blob> => {
+export const synthesizeVoice = async (_request: VoiceRequest): Promise<Blob> => {
   // Simulated voice synthesis
   return new Promise((resolve) => {
     setTimeout(() => {

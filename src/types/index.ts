@@ -46,8 +46,10 @@ export interface SubtitleStyle {
   fontFamily?: string;
   fontSize?: number;
   fontColor?: string;
+  color?: string; // Alias for fontColor
   backgroundColor?: string;
   position?: 'top' | 'center' | 'bottom';
+  textAlign?: 'left' | 'center' | 'right';
   bold?: boolean;
   italic?: boolean;
 }

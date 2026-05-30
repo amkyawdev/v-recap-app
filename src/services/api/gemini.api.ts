@@ -1,5 +1,3 @@
-import axios from 'axios';
-import API_CONFIG from './config';
 
 export interface TranslateRequest {
   text: string;

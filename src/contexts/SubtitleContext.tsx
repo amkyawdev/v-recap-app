@@ -6,9 +6,11 @@ interface SubtitleContextType {
   subtitles: SubtitleCue[];
   currentSubtitle: SubtitleCue | null;
   style: SubtitleStyle;
+  subtitleStyle: SubtitleStyle; // Alias for compatibility
   addSubtitle: (start: number, end: number, text: string) => void;
   updateSubtitle: (id: string, updates: Partial<SubtitleCue>) => void;
   removeSubtitle: (id: string) => void;
+  deleteSubtitle: (id: string) => void; // Alias for compatibility
   setCurrentSubtitle: (subtitle: SubtitleCue | null) => void;
   setStyle: (style: Partial<SubtitleStyle>) => void;
   importSubtitles: (cues: SubtitleCue[]) => void;
@@ -66,7 +68,7 @@ export const SubtitleProvider: React.FC<{ children: ReactNode }> = ({ children }
   };
 
   const translateSubtitles = (results: TranslationResult[]) => {
-    setSubtitles(prev => prev.map((subtitle, index) => {
+    setSubtitles(prev => prev.map((subtitle) => {
       const result = results.find(r => r.original === subtitle.text);
       return result ? { ...subtitle, text: result.translated } : subtitle;
     }));
@@ -82,9 +84,11 @@ export const SubtitleProvider: React.FC<{ children: ReactNode }> = ({ children }
       subtitles,
       currentSubtitle,
       style,
+      subtitleStyle: style, // Alias for compatibility
       addSubtitle,
       updateSubtitle,
       removeSubtitle,
+      deleteSubtitle: removeSubtitle, // Alias for compatibility
       setCurrentSubtitle,
       setStyle,
       importSubtitles,

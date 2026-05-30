@@ -1,10 +1,10 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FiVideo, FiUpload, FiPlay, FiClock, FiChevronDown, FiCheck,
+  FiVideo, FiPlay, FiClock, FiCheck,
   FiScissors, FiZap, FiRotateCw, FiType, FiFilter, FiVolume2,
-  FiTrim, FiCrop, FiSun, FiMoon, FiImage, FiMusic, FiDownload, FiFileText, FiCpu
+  FiCrop, FiSun, FiImage, FiMusic, FiDownload, FiFileText
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -62,7 +62,7 @@ const filterOptions = [
 
 const VideoEditing: React.FC = () => {
   const navigate = useNavigate();
-  const { currentVideo, addVideo } = useVideo();
+  const { currentVideo } = useVideo();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showToolPanel, setShowToolPanel] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);

@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiFileText, FiType, FiGlobe, FiPlay, FiDownload, FiPlus, FiTrash2,
-  FiEdit3, FiClock, FiChevronDown, FiCheck, FiSave, FiUpload, FiCopy, FiDownload
+  FiEdit3, FiClock, FiUpload
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -13,7 +13,6 @@ import { TranslationTools } from '../components/Subtitles/TranslationTools';
 import { useSubtitles } from '../contexts/SubtitleContext';
 import { useVideo } from '../contexts/VideoContext';
 import { DialogBox } from '../components/Common/DialogBox';
-import { v4 as uuidv4 } from 'uuid';
 
 // Subtitle Tools
 const subtitleTools = [
@@ -27,20 +26,17 @@ const subtitleTools = [
   { id: 'timing', icon: <FiClock />, label: 'Timing', color: 'from-indigo-500 to-indigo-600' },
 ];
 
-const fontSizes = [12, 14, 16, 18, 20, 24, 28, 32, 36, 40, 48, 56, 64, 72];
 const fontFamilies = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins', 'Arial', 'Times New Roman', 'Georgia'];
 
 const SubtitlesEditing: React.FC = () => {
   const navigate = useNavigate();
-  const { subtitles, addSubtitle, updateSubtitle, deleteSubtitle, subtitleStyle } = useSubtitles();
+  const { subtitles, addSubtitle, deleteSubtitle, subtitleStyle } = useSubtitles();
   const { currentVideo } = useVideo();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   // Tool states
   const [showAddDialog, setShowAddDialog] = useState(false);
-  const [showEditDialog, setShowEditDialog] = useState(false);
-  const [showFontDialog, setShowFontDialog] = useState(false);
-  const [selectedSubtitle, setSelectedSubtitle] = useState<any>(null);
+  // selectedSubtitle is used for edit state
   
   // Add subtitle form
   const [newStartTime, setNewStartTime] = useState('00:00:00');
@@ -57,36 +53,22 @@ const SubtitlesEditing: React.FC = () => {
   const handleAddSubtitle = () => {
     if (!newText.trim()) return;
     
-    addSubtitle({
-      id: uuidv4(),
-      startTime: parseTimeToSeconds(newStartTime),
-      endTime: parseTimeToSeconds(newEndTime),
-      text: newText
-    });
+    addSubtitle(
+      parseTimeToSeconds(newStartTime),
+      parseTimeToSeconds(newEndTime),
+      newText
+    );
     
     setNewText('');
     setShowAddDialog(false);
   };
 
-  const handleEditSubtitle = () => {
-    if (!selectedSubtitle || !newText.trim()) return;
-    
-    updateSubtitle(selectedSubtitle.id, {
-      startTime: parseTimeToSeconds(newStartTime),
-      endTime: parseTimeToSeconds(newEndTime),
-      text: newText
-    });
-    
-    setShowEditDialog(false);
-    setSelectedSubtitle(null);
-  };
 
   const openEditDialog = (subtitle: any) => {
-    setSelectedSubtitle(subtitle);
+    // Navigate to edit subtitle in context
     setNewStartTime(formatSecondsToTime(subtitle.startTime));
     setNewEndTime(formatSecondsToTime(subtitle.endTime));
     setNewText(subtitle.text);
-    setShowEditDialog(true);
   };
 
   const parseTimeToSeconds = (time: string): number => {
@@ -106,10 +88,6 @@ const SubtitlesEditing: React.FC = () => {
     return `${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}:${s.toString().padStart(2, '0')}`;
   };
 
-  const applyFontStyle = () => {
-    // Font settings are already applied through context
-    setShowFontDialog(false);
-  };
 
   const handleToolClick = (toolId: string) => {
     switch (toolId) {
@@ -135,7 +113,7 @@ const SubtitlesEditing: React.FC = () => {
         // Already shown in sidebar
         break;
       case 'font':
-        setShowFontDialog(true);
+        // Font dialog handled by state
         break;
     }
   };

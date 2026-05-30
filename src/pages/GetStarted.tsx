@@ -8,8 +8,8 @@ import { usePermissions } from '../contexts/PermissionContext';
 
 const GetStarted: React.FC = () => {
   const navigate = useNavigate();
-  const { requestPermissions, checkSystemPermission, setFolderName, folderName } = usePermissions();
-  const [showDialog, setShowDialog] = useState(true);
+  const { requestPermissions, checkSystemPermission } = usePermissions();
+  const [showDialog] = useState(true);
   const [inputFolder, setInputFolder] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -18,7 +18,7 @@ const GetStarted: React.FC = () => {
     if (!inputFolder.trim()) return;
     
     setIsLoading(true);
-    setFolderName(inputFolder);
+    
     
     try {
       const hasPermission = await requestPermissions();

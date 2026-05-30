@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { FiType, FiBold, FiItalic, FiAlignLeft, FiAlignCenter, FiAlignRight } from 'react-icons/fi';
 import { useSubtitles } from '../../contexts/SubtitleContext';
 

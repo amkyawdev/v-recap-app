@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
-  FiVolume2, FiVolumeX, FiMaximize, FiSettings,
-  FiDownload, FiShare2
+  FiVolume2, FiVolumeX, FiMaximize, FiSettings
 } from 'react-icons/fi';
 
 interface VideoPlayerProps {

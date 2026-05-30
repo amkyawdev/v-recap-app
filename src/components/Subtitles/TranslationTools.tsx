@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiGlobe, FiEdit3, FiCheck, FiX, FiPlus, FiChevronDown } from 'react-icons/fi';
+import { FiGlobe, FiChevronDown } from 'react-icons/fi';
 import { useSubtitles } from '../../contexts/SubtitleContext';
 
 const languages = [

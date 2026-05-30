@@ -2,8 +2,8 @@ import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FiHome, FiGrid, FiPlay, FiFileText, FiVideo, 
-  FiInfo, FiSettings, FiLogOut, FiTrendingUp, FiKey,
+  FiGrid, FiPlay, FiFileText, FiVideo, 
+  FiInfo, FiSettings, FiLogOut, FiKey,
   FiChevronRight, FiArrowRight
 } from 'react-icons/fi';
 

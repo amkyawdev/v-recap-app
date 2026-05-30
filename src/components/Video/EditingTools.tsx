@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { 
-  FiScissors, FiMove, FiRotateCw, FiClock,
+  FiScissors, FiRotateCw, FiClock,
   FiType, FiFilter, FiZap, FiChevronDown, FiCheck
 } from 'react-icons/fi';
 import { DialogBox } from '../Common/DialogBox';

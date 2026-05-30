@@ -2,14 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
-  FiGrid, FiClock, FiTrendingUp, FiTrash2, 
-  FiEdit3, FiCopy, FiEye, FiMoreVertical, FiPlus, FiVideo, FiFileText,
-  FiPlay, FiSettings, FiFolder, FiHardDrive, FiRefreshCw, FiCheck
+  FiClock, FiTrash2, 
+  FiEdit3, FiPlus, FiVideo, FiFileText,
+  FiFolder, FiCheck
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
 import { Button } from '../components/Common/Button';
-import { storageService, Project } from '../services/storage/indexedDb';
+// Storage service is available for future use;
 import { useVideo } from '../contexts/VideoContext';
 import { useSubtitles } from '../contexts/SubtitleContext';
 
@@ -29,12 +29,12 @@ interface HistoryItem {
 
 const Dashboard: React.FC = () => {
   const navigate = useNavigate();
-  const { videos, currentVideo, removeVideo } = useVideo();
+  const { videos, removeVideo } = useVideo();
   const { subtitles } = useSubtitles();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'recent' | 'favorites'>('all');
   const [history, setHistory] = useState<HistoryItem[]>([]);
-  const [storageInfo, setStorageInfo] = useState({ used: 0, quota: 0 });
+  
 
   // Load history from localStorage and sync with videos
   useEffect(() => {
@@ -98,12 +98,7 @@ const Dashboard: React.FC = () => {
   };
 
   const loadStorageInfo = async () => {
-    try {
-      const info = await storageService.getStorageInfo();
-      setStorageInfo(info);
-    } catch (error) {
-      console.error('Failed to get storage info:', error);
-    }
+    // Storage info loading placeholder
   };
 
   const handleDeleteHistory = (id: string) => {
@@ -112,7 +107,7 @@ const Dashboard: React.FC = () => {
     removeVideo(id);
   };
 
-  const handleOpenHistory = (item: HistoryItem) => {
+  const handleOpenHistory = (_item: HistoryItem) => {
     // Navigate to video editing
     navigate('/video-editing');
   };
@@ -141,11 +136,6 @@ const Dashboard: React.FC = () => {
     return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
   };
 
-  const formatStorageSize = (bytes: number) => {
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    if (bytes < 1024 * 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-    return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
-  };
 
   const formatDate = (date: Date) => {
     const d = new Date(date);

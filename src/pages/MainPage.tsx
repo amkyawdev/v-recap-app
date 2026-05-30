@@ -3,8 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useDropzone } from 'react-dropzone';
 import { 
-  FiVideo, FiFileText, FiPlay, FiPlus, FiTrendingUp,
-  FiClock, FiStar, FiArrowRight, FiUpload, FiCheck, FiAlertCircle
+  FiVideo, FiFileText, FiPlay, FiTrendingUp,
+  FiStar, FiArrowRight, FiUpload, FiCheck, FiAlertCircle
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';

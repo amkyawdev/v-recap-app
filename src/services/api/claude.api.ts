@@ -6,7 +6,7 @@ export interface AnalyzeRequest {
   task: 'summarize' | 'translate' | 'analyze';
 }
 
-export const analyze = async (request: AnalyzeRequest): Promise<string> => {
+export const analyze = async (_request: AnalyzeRequest): Promise<string> => {
   // Simulated analysis
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -15,7 +15,7 @@ export const analyze = async (request: AnalyzeRequest): Promise<string> => {
   });
 };
 
-export const generateSubtitles = async (transcript: string): Promise<Array<{ start: number; end: number; text: string }>> => {
+export const generateSubtitles = async (_transcript: string): Promise<Array<{ start: number; end: number; text: string }>> => {
   // Simulated subtitle generation
   return new Promise((resolve) => {
     setTimeout(() => {

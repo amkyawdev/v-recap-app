@@ -1,5 +1,6 @@
 // FFmpeg Video Processing Service
-import { createFFmpeg, FFmpeg } from '@ffmpeg/ffmpeg';
+import { FFmpeg } from '@ffmpeg/ffmpeg';
+import { fetchFile } from '@ffmpeg/util';
 
 export interface ProcessingOptions {
   trim?: { start: number; end: number };
@@ -29,13 +30,12 @@ class VideoProcessorService {
 
     this.loadingPromise = (async () => {
       try {
-        this.ffmpeg = createFFmpeg({
-          log: true,
-          corePath: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/esm/ffmpeg-core.js'
-        });
+        this.ffmpeg = new FFmpeg();
         
         console.log('Loading FFmpeg...');
-        await this.ffmpeg.load();
+        await this.ffmpeg.load({
+          coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
+        });
         this.isLoaded = true;
         console.log('FFmpeg loaded successfully');
       } catch (error) {
@@ -134,7 +134,10 @@ class VideoProcessorService {
 
       // Read output
       const data = await this.ffmpeg.readFile(outputName);
-      const outputBlob = new Blob([data], { 
+      // Convert to proper Uint8Array format for Blob
+      const uint8Data = data instanceof Uint8Array ? data : new Uint8Array(data as unknown as ArrayBuffer);
+      // @ts-ignore - TypeScript version compatibility
+      const outputBlob = new Blob([uint8Data.buffer as ArrayBuffer], { 
         type: this.getMimeType(options.outputFormat || 'mp4') 
       });
 
@@ -206,7 +209,9 @@ class VideoProcessorService {
       ]);
 
       const data = await this.ffmpeg.readFile(outputName);
-      const outputBlob = new Blob([data], { type: 'video/mp4' });
+      const uint8Data = data instanceof Uint8Array ? data : new Uint8Array(data as unknown as ArrayBuffer);
+      // @ts-ignore - TypeScript version compatibility
+      const outputBlob = new Blob([uint8Data.buffer as ArrayBuffer], { type: 'video/mp4' });
       const outputUrl = URL.createObjectURL(outputBlob);
 
       await this.ffmpeg.deleteFile(inputName);
@@ -247,7 +252,9 @@ class VideoProcessorService {
       ]);
 
       const data = await this.ffmpeg.readFile(outputName);
-      const outputBlob = new Blob([data], { type: 'audio/mp3' });
+      const uint8Data = data instanceof Uint8Array ? data : new Uint8Array(data as unknown as ArrayBuffer);
+      // @ts-ignore - TypeScript version compatibility
+      const outputBlob = new Blob([uint8Data.buffer as ArrayBuffer], { type: 'audio/mp3' });
       const outputUrl = URL.createObjectURL(outputBlob);
 
       await this.ffmpeg.deleteFile(inputName);
@@ -272,10 +279,6 @@ class VideoProcessorService {
   }
 }
 
-// Helper function to convert Blob to Uint8Array
-async function fetchFile(file: Blob): Promise<Uint8Array> {
-  return new Uint8Array(await file.arrayBuffer());
-}
 
 export const videoProcessor = new VideoProcessorService();
 export default videoProcessor;

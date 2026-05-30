@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiVideo, FiDownload, FiSettings, FiPlay, FiCheck, 
-  FiFilm, FiFile, FiClock, FiRefreshCw, FiTrash2,
-  FiImage, FiCpu, FiHardDrive, FiShare2
+  FiFilm, FiFile, FiImage, FiCpu, FiHardDrive
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -58,28 +57,12 @@ const CreateVideo: React.FC = () => {
   const [isRendering, setIsRendering] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
   const [renderProgress, setRenderProgress] = useState(0);
-  const [showSettings, setShowSettings] = useState(true);
-  const [showPreview, setShowPreview] = useState(true);
-  const [selectedTool, setSelectedTool] = useState<string | null>(null);
+  
+  
+  
 
-  const handleToolClick = (toolId: string) => {
-    setSelectedTool(toolId);
-    switch (toolId) {
-      case 'quality':
-        setShowSettings(true);
-        setShowPreview(false);
-        break;
-      case 'preview':
-        setShowPreview(true);
-        setShowSettings(false);
-        break;
-      case 'watermark':
-        // Open watermark dialog
-        break;
-      default:
-        setShowSettings(true);
-        setShowPreview(false);
-    }
+  const handleToolClick = (_toolId: string) => {
+    // Tool selection handled by state-based UI
   };
 
   const handleRender = async () => {

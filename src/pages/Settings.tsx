@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { FiKey, FiEye, FiEyeOff, FiSave, FiCheck, FiAlertCircle } from 'react-icons/fi';
+import { FiKey, FiEye, FiEyeOff, FiSave, FiCheck } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
 import { Button } from '../components/Common/Button';

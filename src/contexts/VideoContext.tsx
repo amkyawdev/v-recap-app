@@ -22,7 +22,7 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [currentVideo, setCurrentVideo] = useState<VideoFile | null>(null);
   const [processingJobs, setProcessingJobs] = useState<ProcessingJob[]>([]);
 
-  const addVideo = useCallback(async (file: File) => {
+  const addVideo = useCallback(async (file: File): Promise<void> => {
     return new Promise((resolve, reject) => {
       const videoUrl = URL.createObjectURL(file);
       const videoElement = document.createElement('video');
@@ -40,7 +40,7 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         
         setVideos(prev => [...prev, video]);
         setCurrentVideo(video);
-        resolve();
+        resolve(undefined);
       };
       
       videoElement.onerror = () => {

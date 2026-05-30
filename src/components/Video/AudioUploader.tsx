@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+
 import { FiUpload, FiMusic } from 'react-icons/fi';
 
 export const AudioUploader: React.FC = () => {

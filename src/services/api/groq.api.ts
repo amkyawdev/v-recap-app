@@ -7,7 +7,7 @@ export interface ChatRequest {
   temperature?: number;
 }
 
-export const chat = async (request: ChatRequest): Promise<string> => {
+export const chat = async (_request: ChatRequest): Promise<string> => {
   // Simulated chat completion
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -16,7 +16,7 @@ export const chat = async (request: ChatRequest): Promise<string> => {
   });
 };
 
-export const transcribe = async (audioBlob: Blob): Promise<string> => {
+export const transcribe = async (_audioBlob: Blob): Promise<string> => {
   // Simulated transcription
   return new Promise((resolve) => {
     setTimeout(() => {
