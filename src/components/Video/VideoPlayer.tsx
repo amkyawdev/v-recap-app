@@ -128,6 +128,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         onEnded={handleEnded}
         onError={handleError}
         className="w-full h-full object-contain bg-gray-900"
+        style={{ pointerEvents: (isConverting || videoError || errorMessage) ? 'none' : 'auto' }}
       />
       
       {/* Error overlay - only show when NOT converting */}
@@ -216,6 +217,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: isPlaying || isConverting || videoError || errorMessage ? 0 : 0.8 }}
         className="absolute inset-0 flex items-center justify-center bg-black/30 z-10"
+        style={{ pointerEvents: (isConverting || videoError || errorMessage) ? 'none' : 'auto' }}
       >
         <button
           onClick={togglePlay}
@@ -229,7 +231,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: showControls && !isConverting && !videoError && !errorMessage ? 1 : 0, y: showControls ? 0 : 20 }}
-        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10"
+        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-30"
+        style={{ pointerEvents: (isConverting || videoError || errorMessage) ? 'none' : 'auto' }}
       >
         {/* Progress Bar */}
         <div 
