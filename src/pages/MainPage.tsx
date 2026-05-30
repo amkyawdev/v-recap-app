@@ -34,7 +34,6 @@ const MainPage: React.FC = () => {
     const file = acceptedFiles[0];
     console.log('MainPage: File selected', file.name, file.type, file.size);
     
-    // Skip validation - accept any file for testing
     const tempId = `upload-${Date.now()}`;
     
     setUploadStatus({
@@ -45,16 +44,9 @@ const MainPage: React.FC = () => {
     });
 
     try {
-      // Simulate progress
-      for (let progress = 20; progress <= 50; progress += 15) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-        setUploadStatus(prev => prev ? { ...prev, progress } : null);
-      }
-
-      // Add video
       console.log('MainPage: Calling addVideo...');
-      const result = await addVideo(file);
-      console.log('MainPage: addVideo completed, result:', result);
+      await addVideo(file);
+      console.log('MainPage: addVideo completed');
       
       setUploadStatus({
         id: tempId,
@@ -63,11 +55,11 @@ const MainPage: React.FC = () => {
         status: 'success'
       });
 
-      // Navigate after success - ensure state is updated first
+      // Navigate after short delay
       setTimeout(() => {
         console.log('MainPage: Navigating to /video-editing');
         navigate('/video-editing', { replace: true });
-      }, 1000);
+      }, 500);
 
     } catch (err) {
       console.error('MainPage: Error adding video', err);
@@ -79,7 +71,6 @@ const MainPage: React.FC = () => {
         message: err instanceof Error ? err.message : 'Upload failed'
       });
       
-      // Clear error after 5 seconds
       setTimeout(() => setUploadStatus(null), 5000);
     }
   }, [addVideo, navigate]);

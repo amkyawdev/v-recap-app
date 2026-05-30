@@ -37,53 +37,46 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     
     // Clear previous error
     setErrorMessage(null);
-    setConversionProgress(0);
-    setIsConverting(false);
     
+    // Create blob URL immediately
     const videoUrl = URL.createObjectURL(file);
+    console.log('VideoContext: Created blob URL');
     
-    // Get video metadata first
+    // Create video object immediately (don't wait for metadata)
+    const newVideo: VideoFile = {
+      id: uuidv4(),
+      file,
+      name: file.name,
+      size: file.size,
+      duration: 0,
+      thumbnail: '',
+      url: videoUrl
+    };
+    
+    console.log('VideoContext: Setting currentVideo immediately');
+    
+    // Set state immediately
+    setVideos(prev => [...prev, newVideo]);
+    setCurrentVideo(newVideo);
+    
+    // Try to get duration in background (don't block)
     const tempVideo = document.createElement('video');
     tempVideo.preload = 'metadata';
     tempVideo.muted = true;
     
-    return new Promise<void>((resolve) => {
-      tempVideo.onloadedmetadata = () => {
-        console.log('VideoContext: Metadata loaded, duration:', tempVideo.duration);
-        
-        // Create video object with duration
-        const newVideo: VideoFile = {
-          id: uuidv4(),
-          file,
-          name: file.name,
-          size: file.size,
-          duration: tempVideo.duration,
-          thumbnail: '',
-          url: videoUrl
-        };
-        
-        setVideos(prev => [...prev, newVideo]);
-        setCurrentVideo(newVideo);
-        console.log('VideoContext: Video added successfully');
-        resolve();
-      };
-      
-      tempVideo.onerror = () => {
-        console.error('VideoContext: Failed to load video');
-        setErrorMessage('Failed to load video. Please try a different file.');
-        resolve();
-      };
-      
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        if (!tempVideo.duration) {
-          setErrorMessage('Failed to load video. Please try a different file.');
-        }
-        resolve();
-      }, 5000);
-      
-      tempVideo.src = videoUrl;
-    });
+    tempVideo.onloadedmetadata = () => {
+      console.log('VideoContext: Metadata loaded, duration:', tempVideo.duration);
+      setCurrentVideo(prev => prev ? { ...prev, duration: tempVideo.duration } : null);
+    };
+    
+    tempVideo.onerror = () => {
+      console.error('VideoContext: Video load error (non-fatal)');
+    };
+    
+    tempVideo.src = videoUrl;
+    
+    console.log('VideoContext: Video added, URL set');
+    return Promise.resolve();
   }, []);
 
   // FFmpeg conversion function

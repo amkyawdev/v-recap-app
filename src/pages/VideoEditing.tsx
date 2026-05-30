@@ -63,6 +63,10 @@ const filterOptions = [
 const VideoEditing: React.FC = () => {
   const navigate = useNavigate();
   const { currentVideo } = useVideo();
+  
+  console.log('VideoEditing: currentVideo =', currentVideo);
+  console.log('VideoEditing: currentVideo?.url =', currentVideo?.url);
+  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showToolPanel, setShowToolPanel] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);

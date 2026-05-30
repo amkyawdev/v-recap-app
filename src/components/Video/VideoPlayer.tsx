@@ -24,6 +24,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   // Log when src changes
   useEffect(() => {
     console.log('VideoPlayer: src changed to:', src ? 'blob URL exists' : 'empty');
+    console.log('VideoPlayer: src value =', src);
     setVideoError('');
   }, [src]);
 
