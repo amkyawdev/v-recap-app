@@ -49,8 +49,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const handleError = () => {
     if (videoRef.current?.error) {
       const error = videoRef.current.error;
-      console.error('VideoPlayer: Error', error);
-      setVideoError(`Error code: ${error.code}`);
+      console.error('VideoPlayer: Error code:', error.code);
+      
+      let message = '';
+      switch (error.code) {
+        case 1: message = 'Loading aborted'; break;
+        case 2: message = 'Network error'; break;
+        case 3: message = 'Decoding error - corrupted file'; break;
+        case 4: message = 'Format not supported by browser (try MP4)'; break;
+        default: message = `Unknown error (${error.code})`;
+      }
+      
+      setVideoError(message);
     }
   };
 
