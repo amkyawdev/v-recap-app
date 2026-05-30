@@ -127,27 +127,21 @@ const MainPage: React.FC = () => {
           <p className="text-white/60">Create amazing videos with ease</p>
         </motion.div>
 
-        {/* Upload Zone */}
+        {/* Upload Zone - Mobile Button Style */}
         <motion.div
-          {...getRootProps()}
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
-          className={`card p-8 text-center cursor-pointer transition-all duration-300 mb-6 ${
-            isDragActive ? 'border-accent-500 bg-accent-500/10' : 'hover:border-white/40'
-          }`}
+          className="mb-6"
         >
-          <input {...getInputProps()} />
-          <motion.div
-            animate={isDragActive ? { scale: 1.1 } : { scale: 1 }}
-            className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-accent-500/20 mb-4"
-          >
-            <FiUpload className="text-3xl text-accent-500" />
-          </motion.div>
-          <h3 className="text-xl font-semibold text-white mb-2">
-            {isDragActive ? 'Drop video here' : 'Upload Video'}
-          </h3>
-          <p className="text-white/60 text-sm">
+          <label className="block cursor-pointer w-full">
+            <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-5 px-6 rounded-2xl text-center transition-all duration-300 shadow-xl active:scale-95 flex items-center justify-center gap-3">
+              <FiUpload className="text-2xl" />
+              <span className="text-lg">Upload Video</span>
+            </div>
+            <input {...getInputProps()} className="hidden" />
+          </label>
+          <p className="text-white/40 text-xs text-center mt-3">
             MP4, MOV, AVI, WebM, MKV (Max 500MB)
           </p>
           
@@ -160,11 +154,11 @@ const MainPage: React.FC = () => {
             }`}>
               <div className="flex items-center justify-center gap-3">
                 {uploadStatus.status === 'success' ? (
-                  <FiCheck className="text-green-400 text-xl" />
+                  <FiCheck className="text-green-400 text-2xl" />
                 ) : uploadStatus.status === 'error' ? (
-                  <FiAlertCircle className="text-red-400 text-xl" />
+                  <FiAlertCircle className="text-red-400 text-2xl" />
                 ) : (
-                  <FiUpload className="text-blue-400 text-xl animate-pulse" />
+                  <FiUpload className="text-blue-400 text-2xl animate-pulse" />
                 )}
                 <div>
                   <p className="text-white font-medium">{uploadStatus.name}</p>
@@ -175,14 +169,14 @@ const MainPage: React.FC = () => {
                     <p className="text-sm text-red-400">{uploadStatus.message}</p>
                   )}
                   {uploadStatus.status === 'success' && (
-                    <p className="text-sm text-green-400">Success!</p>
+                    <p className="text-sm text-green-400">Success! Redirecting...</p>
                   )}
                 </div>
               </div>
               {uploadStatus.status === 'uploading' && (
-                <div className="mt-2 h-1 bg-white/20 rounded-full overflow-hidden">
+                <div className="mt-3 h-2 bg-white/20 rounded-full overflow-hidden">
                   <motion.div
-                    className="h-full bg-accent-500"
+                    className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
                     style={{ width: `${uploadStatus.progress}%` }}
                   />
                 </div>

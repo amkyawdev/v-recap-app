@@ -113,30 +113,19 @@ export const VideoUploader: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Drop Zone */}
-      <div
-        {...getRootProps()}
-        className={`card p-6 text-center cursor-pointer transition-all duration-300 ${
-          isDragActive ? 'border-accent-500 bg-accent-500/10' : 'hover:border-white/40'
-        }`}
-      >
-        <input {...getInputProps()} />
-        <motion.div
-          animate={isDragActive ? { scale: 1.1 } : { scale: 1 }}
-          className="inline-flex items-center justify-center w-14 h-14 rounded-full bg-accent-500/20 mb-3"
-        >
-          <FiUpload className="text-2xl text-accent-500" />
-        </motion.div>
-        <h3 className="text-base font-semibold text-white mb-1">
-          {isDragActive ? 'Drop here' : 'Upload Video'}
-        </h3>
-        <p className="text-white/60 text-xs">
-          Click or drag to upload
-        </p>
-        <p className="text-white/40 text-xs mt-1">
-          MP4, MOV, AVI, WebM, MKV (Max 500MB)
-        </p>
-      </div>
+      {/* Drop Zone - Button Style for Mobile */}
+      <label className="block cursor-pointer w-full">
+        <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-4 px-6 rounded-xl text-center transition-all duration-300 shadow-lg active:scale-95 flex items-center justify-center gap-3">
+          <FiUpload className="text-xl" />
+          <span className="text-base">Upload Video</span>
+        </div>
+        <input {...getInputProps()} className="hidden" />
+      </label>
+
+      {/* File Formats Info */}
+      <p className="text-white/40 text-xs text-center">
+        MP4, MOV, AVI, WebM, MKV (Max 500MB)
+      </p>
 
       {/* Error Message */}
       {error && (
@@ -163,7 +152,7 @@ export const VideoUploader: React.FC = () => {
             }`}
           >
             <div className="flex items-center gap-3">
-              <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+              <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
                 status.status === 'success' ? 'bg-green-500/20' :
                 status.status === 'error' ? 'bg-red-500/20' :
                 'bg-blue-500/20'
@@ -180,7 +169,7 @@ export const VideoUploader: React.FC = () => {
                 <p className="text-white text-sm truncate">{status.name}</p>
                 {status.status === 'uploading' && (
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full bg-accent-500"
                         initial={{ width: 0 }}

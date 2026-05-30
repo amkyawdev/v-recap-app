@@ -188,22 +188,24 @@ export const SubtitleUploader: React.FC = () => {
 
   return (
     <div className="space-y-4">
-      {/* Drop Zone */}
-      {showDropZone && (
-        <label className="block cursor-pointer">
-          <div className="card p-6 text-center hover:border-accent-500/50 transition-colors border-dashed">
-            <FiUpload className="text-3xl text-accent-500 mx-auto mb-3" />
-            <p className="text-white font-medium">Upload Subtitle File</p>
-            <p className="text-sm text-white/50 mt-1">SRT, VTT, or TXT formats</p>
-            <input
-              type="file"
-              accept=".srt,.vtt,.txt"
-              onChange={handleFileUpload}
-              className="hidden"
-            />
-          </div>
-        </label>
-      )}
+      {/* Upload Button - Mobile Style */}
+      <label className="block cursor-pointer w-full">
+        <div className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-semibold py-4 px-6 rounded-xl text-center transition-all duration-300 shadow-lg active:scale-95 flex items-center justify-center gap-3">
+          <FiUpload className="text-xl" />
+          <span className="text-base">Upload Subtitle File</span>
+        </div>
+        <input
+          type="file"
+          accept=".srt,.vtt,.txt"
+          onChange={handleFileUpload}
+          className="hidden"
+        />
+      </label>
+
+      {/* File Formats Info */}
+      <p className="text-white/40 text-xs text-center">
+        SRT, VTT, or TXT formats supported
+      </p>
 
       {/* Upload Status */}
       <AnimatePresence>
@@ -236,7 +238,7 @@ export const SubtitleUploader: React.FC = () => {
                 <p className="text-white font-medium truncate">{status.name}</p>
                 {status.status === 'uploading' && (
                   <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1 bg-white/20 rounded-full overflow-hidden">
+                    <div className="flex-1 h-1.5 bg-white/20 rounded-full overflow-hidden">
                       <motion.div
                         className="h-full bg-purple-500"
                         initial={{ width: 0 }}
@@ -265,11 +267,11 @@ export const SubtitleUploader: React.FC = () => {
         </div>
       )}
 
-      {/* Manual Import Buttons */}
+      {/* Quick Format Buttons */}
       <div className="flex gap-2">
         <label className="flex-1 cursor-pointer">
-          <div className="btn-secondary text-center">
-            <FiFileText className="mr-2 inline" /> Import SRT
+          <div className="btn-secondary text-center text-sm py-3">
+            <FiFileText className="mr-2 inline" /> SRT
           </div>
           <input
             type="file"
@@ -279,8 +281,8 @@ export const SubtitleUploader: React.FC = () => {
           />
         </label>
         <label className="flex-1 cursor-pointer">
-          <div className="btn-secondary text-center">
-            <FiFileText className="mr-2 inline" /> Import VTT
+          <div className="btn-secondary text-center text-sm py-3">
+            <FiFileText className="mr-2 inline" /> VTT
           </div>
           <input
             type="file"

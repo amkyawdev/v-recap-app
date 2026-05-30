@@ -293,27 +293,26 @@ const VideoEditing: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="card p-3"
+              className="card p-4"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-white text-sm flex items-center gap-2">
-                  <FiScissors className="text-accent-500 text-xs" />
-                  Tools
+                  <FiScissors className="text-accent-500" />
+                  Video Tools
                 </h3>
-                <span className="text-xs text-white/50">{appliedEffects.length} applied</span>
+                <span className="text-xs text-white/50">{appliedEffects.length} effects</span>
               </div>
               
-              {/* Tools Grid - Compact */}
-              <div className="grid grid-cols-6 sm:grid-cols-8 md:grid-cols-12 gap-2">
+              {/* Tools Grid - Mobile Friendly */}
+              <div className="grid grid-cols-4 xs:grid-cols-6 sm:grid-cols-8 gap-2">
                 {videoTools.map((tool) => (
                   <motion.button
                     key={tool.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => handleToolClick(tool.id)}
-                    className={`p-2 rounded-lg bg-gradient-to-r ${tool.color} text-white text-center transition-all shadow-lg hover:shadow-xl`}
+                    className={`p-3 rounded-xl bg-gradient-to-br ${tool.color} text-white text-center transition-all shadow-md active:shadow-sm flex flex-col items-center gap-1`}
                   >
-                    <div className="text-lg mb-1">{tool.icon}</div>
+                    <div className="text-xl">{tool.icon}</div>
                     <div className="text-xs font-medium">{tool.label}</div>
                   </motion.button>
                 ))}
@@ -323,7 +322,7 @@ const VideoEditing: React.FC = () => {
               {appliedEffects.length > 0 && (
                 <div className="flex flex-wrap gap-2 mt-3 pt-3 border-t border-white/10">
                   {appliedEffects.map((effect, i) => (
-                    <span key={i} className="px-2 py-1 bg-green-500/20 text-green-400 rounded text-xs flex items-center gap-1">
+                    <span key={i} className="px-3 py-1.5 bg-green-500/20 text-green-400 rounded-full text-xs flex items-center gap-1">
                       <FiCheck className="text-xs" /> {effect}
                     </span>
                   ))}
@@ -335,16 +334,17 @@ const VideoEditing: React.FC = () => {
             <div className="flex gap-3 mt-4">
               <button
                 onClick={() => navigate('/dashboard')}
-                className="flex-1 btn-secondary py-3 flex items-center justify-center gap-2"
+                className="flex-1 bg-white/10 hover:bg-white/20 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all"
               >
-                ← Dashboard
+                <span>Dashboard</span>
               </button>
               {currentVideo && (
                 <button
                   onClick={() => navigate('/subtitles-editing')}
-                  className="flex-1 btn-primary py-3 flex items-center justify-center gap-2"
+                  className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-semibold py-3 px-4 rounded-xl flex items-center justify-center gap-2 transition-all shadow-lg"
                 >
-                  Next: Subtitles → <FiFileText />
+                  <span>Subtitles</span>
+                  <FiFileText />
                 </button>
               )}
             </div>

@@ -213,25 +213,26 @@ const SubtitlesEditing: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.1 }}
-              className="card p-3"
+              className="card p-4"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-white text-sm flex items-center gap-2">
-                  <FiFileText className="text-accent-500 text-xs" />
-                  Tools
+                  <FiFileText className="text-accent-500" />
+                  Subtitle Tools
                 </h3>
+                <span className="text-xs text-white/50">{subtitles.length} items</span>
               </div>
               
-              <div className="grid grid-cols-8 gap-2">
+              {/* Mobile-friendly grid */}
+              <div className="grid grid-cols-4 xs:grid-cols-6 sm:grid-cols-8 gap-2">
                 {subtitleTools.map((tool) => (
                   <motion.button
                     key={tool.id}
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.9 }}
                     onClick={() => handleToolClick(tool.id)}
-                    className={`p-2 rounded-lg bg-gradient-to-r ${tool.color} text-white text-center transition-all shadow-md hover:shadow-lg`}
+                    className={`p-3 rounded-xl bg-gradient-to-br ${tool.color} text-white text-center transition-all shadow-md active:shadow-sm flex flex-col items-center gap-1`}
                   >
-                    <div className="text-lg mb-1">{tool.icon}</div>
+                    <div className="text-xl">{tool.icon}</div>
                     <div className="text-xs font-medium">{tool.label}</div>
                   </motion.button>
                 ))}
@@ -243,7 +244,7 @@ const SubtitlesEditing: React.FC = () => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.2 }}
-              className="card p-3"
+              className="card p-4"
             >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-white text-sm">Subtitle List</h3>
@@ -289,74 +290,79 @@ const SubtitlesEditing: React.FC = () => {
             </motion.div>
           </div>
 
-          {/* Sidebar */}
-          <div className="xl:col-span-1 space-y-4">
-            <div className="card p-3">
-              <h3 className="font-semibold text-white text-sm mb-3">Import</h3>
+          {/* Sidebar - Mobile friendly */}
+          <div className="space-y-4">
+            <div className="card p-4">
+              <h3 className="font-semibold text-white text-sm mb-3">Import Subtitles</h3>
               <SubtitleUploader />
             </div>
 
-            <div className="card p-3">
+            <div className="card p-4">
               <h3 className="font-semibold text-white text-sm mb-3">Font Style</h3>
-              <div className="space-y-3">
+              <div className="space-y-4">
                 <div>
-                  <label className="text-xs text-white/50 mb-1 block">Font Size</label>
-                  <div className="flex items-center gap-2">
+                  <label className="text-xs text-white/50 mb-2 block">Font Size</label>
+                  <div className="flex items-center gap-3">
                     <input
                       type="range"
                       min="12"
                       max="72"
                       value={fontSize}
                       onChange={(e) => setFontSize(Number(e.target.value))}
-                      className="flex-1"
+                      className="flex-1 h-2"
                     />
                     <span className="text-white text-sm w-12 text-right">{fontSize}px</span>
                   </div>
                 </div>
                 <div>
-                  <label className="text-xs text-white/50 mb-1 block">Font Family</label>
+                  <label className="text-xs text-white/50 mb-2 block">Font Family</label>
                   <select
                     value={fontFamily}
                     onChange={(e) => setFontFamily(e.target.value)}
-                    className="input-field text-sm"
+                    className="input-field text-sm w-full"
                   >
                     {fontFamilies.map(f => (
                       <option key={f} value={f}>{f}</option>
                     ))}
                   </select>
                 </div>
-                <div>
-                  <label className="text-xs text-white/50 mb-1 block">Text Color</label>
-                  <input
-                    type="color"
-                    value={fontColor}
-                    onChange={(e) => setFontColor(e.target.value)}
-                    className="w-full h-10 rounded-lg cursor-pointer"
-                  />
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs text-white/50 mb-2 block">Text Color</label>
+                    <input
+                      type="color"
+                      value={fontColor}
+                      onChange={(e) => setFontColor(e.target.value)}
+                      className="w-full h-10 rounded-xl cursor-pointer"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs text-white/50 mb-2 block">Background</label>
+                    <input
+                      type="color"
+                      value={bgColor.startsWith('rgba') ? '#000000' : bgColor}
+                      onChange={(e) => setBgColor(e.target.value)}
+                      className="w-full h-10 rounded-xl cursor-pointer"
+                    />
+                  </div>
                 </div>
                 <div>
-                  <label className="text-xs text-white/50 mb-1 block">Background</label>
-                  <input
-                    type="color"
-                    value={bgColor.startsWith('rgba') ? '#000000' : bgColor}
-                    onChange={(e) => setBgColor(e.target.value)}
-                    className="w-full h-10 rounded-lg cursor-pointer"
-                  />
-                </div>
-                <div className="grid grid-cols-3 gap-2">
-                  {['left', 'center', 'right'].map(align => (
-                    <button
-                      key={align}
-                      onClick={() => setTextAlign(align)}
-                      className={`p-2 rounded-lg text-xs uppercase ${
-                        textAlign === align
-                          ? 'bg-accent-500 text-white'
-                          : 'bg-white/10 text-white/70 hover:bg-white/20'
-                      }`}
-                    >
-                      {align}
-                    </button>
-                  ))}
+                  <label className="text-xs text-white/50 mb-2 block">Alignment</label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {(['left', 'center', 'right'] as const).map((align) => (
+                      <button
+                        key={align}
+                        onClick={() => setTextAlign(align)}
+                        className={`py-2 rounded-lg text-sm font-medium capitalize transition-all ${
+                          textAlign === align
+                            ? 'bg-gradient-to-r from-blue-600 to-purple-600 text-white'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                        }`}
+                      >
+                        {align}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
             </div>
