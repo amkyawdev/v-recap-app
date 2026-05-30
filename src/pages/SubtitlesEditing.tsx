@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { 
   FiFileText, FiType, FiGlobe, FiPlay, FiDownload, FiPlus, FiTrash2,
-  FiEdit3, FiClock, FiChevronDown, FiCheck, FiSave, FiUpload, FiCopy
+  FiEdit3, FiClock, FiChevronDown, FiCheck, FiSave, FiUpload, FiCopy, FiDownload
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -176,10 +176,10 @@ const SubtitlesEditing: React.FC = () => {
                 ← Back
               </Button>
               {subtitles.length > 0 && (
-                <Button onClick={() => navigate('/create-video')} size="sm">
-                  Render →
-                </Button>
-              )}
+                  <Button onClick={() => navigate('/create-video')} size="sm">
+                    Render Video →
+                  </Button>
+                )}
             </div>
           </div>
         </motion.div>
@@ -439,120 +439,25 @@ const SubtitlesEditing: React.FC = () => {
         </div>
       </DialogBox>
 
-      {/* Edit Subtitle Dialog */}
-      <DialogBox
-        isOpen={showEditDialog}
-        onClose={() => { setShowEditDialog(false); setSelectedSubtitle(null); }}
-        title="Edit Subtitle"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm text-white/70 mb-1 block">Start Time</label>
-            <input
-              type="text"
-              value={newStartTime}
-              onChange={(e) => setNewStartTime(e.target.value)}
-              className="input-field"
-              placeholder="00:00:00"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-white/70 mb-1 block">End Time</label>
-            <input
-              type="text"
-              value={newEndTime}
-              onChange={(e) => setNewEndTime(e.target.value)}
-              className="input-field"
-              placeholder="00:00:05"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-white/70 mb-1 block">Text</label>
-            <textarea
-              value={newText}
-              onChange={(e) => setNewText(e.target.value)}
-              className="input-field min-h-24 resize-none"
-              placeholder="Enter subtitle text..."
-            />
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button onClick={() => { setShowEditDialog(false); setSelectedSubtitle(null); }} className="btn-secondary flex-1">
-              Cancel
-            </button>
-            <button onClick={handleEditSubtitle} className="btn-primary flex-1">
-              <FiCheck className="mr-1" /> Save
-            </button>
-          </div>
-        </div>
-      </DialogBox>
-
-      {/* Font Dialog */}
-      <DialogBox
-        isOpen={showFontDialog}
-        onClose={() => setShowFontDialog(false)}
-        title="Font Settings"
-        size="sm"
-      >
-        <div className="space-y-4">
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">Font Size: {fontSize}px</label>
-            <div className="grid grid-cols-7 gap-1">
-              {fontSizes.map(size => (
-                <button
-                  key={size}
-                  onClick={() => setFontSize(size)}
-                  className={`p-2 rounded text-center text-xs ${
-                    fontSize === size
-                      ? 'bg-accent-500 text-white'
-                      : 'bg-white/10 hover:bg-white/20'
-                  }`}
-                >
-                  {size}
-                </button>
-              ))}
-            </div>
-          </div>
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">Font Family</label>
-            <select
-              value={fontFamily}
-              onChange={(e) => setFontFamily(e.target.value)}
-              className="input-field"
+      {/* Navigation Buttons */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-gradient-to-t from-blue-900 to-transparent">
+        <div className="max-w-7xl mx-auto flex gap-3">
+          <button
+            onClick={() => navigate('/video-editing')}
+            className="flex-1 btn-secondary py-3 flex items-center justify-center gap-2"
+          >
+            ← Video Editing
+          </button>
+          {subtitles.length > 0 && (
+            <button
+              onClick={() => navigate('/create-video')}
+              className="flex-1 btn-primary py-3 flex items-center justify-center gap-2"
             >
-              {fontFamilies.map(f => (
-                <option key={f} value={f}>{f}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">Text Color</label>
-            <input
-              type="color"
-              value={fontColor}
-              onChange={(e) => setFontColor(e.target.value)}
-              className="w-full h-10 rounded-lg cursor-pointer"
-            />
-          </div>
-          <div>
-            <label className="text-sm text-white/70 mb-2 block">Background</label>
-            <input
-              type="color"
-              value={bgColor.startsWith('rgba') ? '#000000' : bgColor}
-              onChange={(e) => setBgColor(e.target.value)}
-              className="w-full h-10 rounded-lg cursor-pointer"
-            />
-          </div>
-          <div className="flex gap-2 pt-2">
-            <button onClick={() => setShowFontDialog(false)} className="btn-secondary flex-1">
-              Cancel
+              Combined Render → <FiDownload />
             </button>
-            <button onClick={applyFontStyle} className="btn-primary flex-1">
-              Apply
-            </button>
-          </div>
+          )}
         </div>
-      </DialogBox>
+      </div>
     </div>
   );
 };

@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { 
   FiVideo, FiUpload, FiPlay, FiClock, FiChevronDown, FiCheck,
   FiScissors, FiZap, FiRotateCw, FiType, FiFilter, FiVolume2,
-  FiTrim, FiCrop, FiSun, FiMoon, FiImage, FiMusic, FiDownload
+  FiTrim, FiCrop, FiSun, FiMoon, FiImage, FiMusic, FiDownload, FiFileText, FiCpu
 } from 'react-icons/fi';
 import { HamburgerMenu } from '../components/Common/HamburgerMenu';
 import { SideMenu } from '../components/Common/SideMenu';
@@ -330,6 +330,24 @@ const VideoEditing: React.FC = () => {
                 </div>
               )}
             </motion.div>
+
+            {/* Navigation Buttons */}
+            <div className="flex gap-3">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="flex-1 btn-secondary py-3 flex items-center justify-center gap-2"
+              >
+                ← Back to Dashboard
+              </button>
+              {currentVideo && (
+                <button
+                  onClick={() => navigate('/subtitles-editing')}
+                  className="flex-1 btn-primary py-3 flex items-center justify-center gap-2"
+                >
+                  Next: Subtitles → <FiFileText />
+                </button>
+              )}
+            </div>
 
             {/* Timeline */}
             <motion.div
