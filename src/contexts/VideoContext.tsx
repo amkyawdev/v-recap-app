@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 import { VideoFile, VideoOperation, ProcessingJob } from '../types';
 import { v4 as uuidv4 } from 'uuid';
+import { videoProcessor } from '../services/video/processor';
 
 interface VideoContextType {
   videos: VideoFile[];
@@ -21,12 +22,12 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [videos, setVideos] = useState<VideoFile[]>([]);
   const [currentVideo, setCurrentVideo] = useState<VideoFile | null>(null);
   const [processingJobs, setProcessingJobs] = useState<ProcessingJob[]>([]);
+  const [isConverting, setIsConverting] = useState(false);
 
   const addVideo = useCallback(async (file: File): Promise<void> => {
     console.log('VideoContext: Adding video', file.name, file.type, file.size);
     
     const videoUrl = URL.createObjectURL(file);
-    console.log('VideoContext: Created object URL');
     
     // Create video object immediately
     const newVideo: VideoFile = {
@@ -41,24 +42,60 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     
     console.log('VideoContext: Setting state with new video');
     
-    // Set state immediately and wait for it
+    // Set state immediately
     setVideos(prev => [...prev, newVideo]);
     setCurrentVideo(newVideo);
     
-    // Try to get duration
-    const videoElement = document.createElement('video');
-    videoElement.preload = 'metadata';
-    videoElement.muted = true;
+    // Check if we can get metadata (this will trigger error if codec not supported)
+    const testVideo = document.createElement('video');
+    testVideo.preload = 'metadata';
+    testVideo.muted = true;
     
     return new Promise((resolve) => {
-      videoElement.onloadedmetadata = () => {
-        console.log('VideoContext: Metadata loaded', videoElement.duration);
-        setCurrentVideo(prev => prev ? { ...prev, duration: videoElement.duration } : null);
+      testVideo.onloadedmetadata = () => {
+        console.log('VideoContext: Metadata loaded, duration:', testVideo.duration);
+        setCurrentVideo(prev => prev ? { ...prev, duration: testVideo.duration } : null);
         resolve();
       };
       
-      videoElement.onerror = () => {
-        console.log('VideoContext: Metadata error (using 0 duration)');
+      testVideo.onerror = async () => {
+        console.log('VideoContext: Codec not supported, will convert with FFmpeg');
+        
+        // Try to convert with FFmpeg
+        setIsConverting(true);
+        
+        try {
+          const result = await videoProcessor.convertToMP4(file, (progress) => {
+            console.log('Conversion progress:', progress + '%');
+          });
+          
+          if (result.success && result.outputUrl) {
+            console.log('VideoContext: Conversion successful');
+            
+            const convertedVideo: VideoFile = {
+              id: uuidv4(),
+              file,
+              name: file.name.replace(/\.[^.]+$/, '_converted.mp4'),
+              size: result.outputBlob?.size || 0,
+              duration: 0,
+              thumbnail: '',
+              url: result.outputUrl
+            };
+            
+            // Remove original and add converted
+            setVideos(prev => prev.filter(v => v.id !== newVideo.id).concat(convertedVideo));
+            setCurrentVideo(convertedVideo);
+            
+            // Revoke original URL
+            URL.revokeObjectURL(videoUrl);
+          } else {
+            console.log('VideoContext: Conversion failed, keeping original');
+          }
+        } catch (err) {
+          console.error('VideoContext: Conversion error', err);
+        }
+        
+        setIsConverting(false);
         resolve();
       };
       
@@ -68,7 +105,7 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         resolve();
       }, 2000);
       
-      videoElement.src = videoUrl;
+      testVideo.src = videoUrl;
     });
   }, []);
 

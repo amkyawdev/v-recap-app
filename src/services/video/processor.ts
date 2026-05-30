@@ -23,6 +23,16 @@ class VideoProcessorService {
   private ffmpeg: FFmpeg | null = null;
   private isLoaded: boolean = false;
   private loadingPromise: Promise<void> | null = null;
+  private logCallback: ((message: string) => void) | null = null;
+
+  setLogCallback(callback: (message: string) => void) {
+    this.logCallback = callback;
+  }
+
+  private log(message: string) {
+    console.log(message);
+    this.logCallback?.(message);
+  }
 
   async load(): Promise<void> {
     if (this.isLoaded) return;
@@ -32,19 +42,110 @@ class VideoProcessorService {
       try {
         this.ffmpeg = new FFmpeg();
         
-        console.log('Loading FFmpeg...');
-        await this.ffmpeg.load({
-          coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js'
+        // Set up logging
+        this.ffmpeg.on('log', ({ message }) => {
+          console.log('FFmpeg:', message);
         });
+
+        this.log('Loading FFmpeg...');
+        
+        // Load ffmpeg core with WASM
+        await this.ffmpeg.load({
+          coreURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.js',
+          wasmURL: 'https://unpkg.com/@ffmpeg/core@0.12.6/dist/umd/ffmpeg-core.wasm'
+        });
+        
         this.isLoaded = true;
-        console.log('FFmpeg loaded successfully');
+        this.log('FFmpeg loaded successfully');
       } catch (error) {
         console.error('Failed to load FFmpeg:', error);
+        this.log('Failed to load FFmpeg: ' + (error as Error).message);
         throw error;
       }
     })();
 
     return this.loadingPromise;
+  }
+
+  // Convert any video to MP4 H.264 for browser compatibility
+  async convertToMP4(inputBlob: Blob, onProgress?: (progress: number) => void): Promise<ProcessingResult> {
+    try {
+      if (!this.ffmpeg || !this.isLoaded) {
+        this.log('Loading FFmpeg for conversion...');
+        await this.load();
+      }
+
+      if (!this.ffmpeg) {
+        return { success: false, error: 'FFmpeg not initialized' };
+      }
+
+      // Set up progress handler
+      this.ffmpeg.on('progress', ({ progress }) => {
+        this.log(`Conversion progress: ${Math.round(progress * 100)}%`);
+        onProgress?.(Math.round(progress * 100));
+      });
+
+      const inputName = 'input_video';
+      const outputName = 'output.mp4';
+
+      this.log('Writing video to FFmpeg...');
+      
+      // Write input file
+      const fileData = await fetchFile(inputBlob);
+      await this.ffmpeg.writeFile(inputName, fileData);
+
+      this.log('Converting to MP4 H.264...');
+
+      // Convert to MP4 H.264 (most compatible format)
+      // -c:v libx264: H.264 video codec
+      // -preset fast: faster encoding
+      // -crf 23: good quality
+      // -c:a aac: AAC audio codec
+      // -movflags +faststart: for web streaming
+      await this.ffmpeg.exec([
+        '-i', inputName,
+        '-c:v', 'libx264',
+        '-preset', 'fast',
+        '-crf', '23',
+        '-c:a', 'aac',
+        '-movflags', '+faststart',
+        '-y', // overwrite output
+        outputName
+      ]);
+
+      this.log('Reading output file...');
+
+      // Read output
+      const data = await this.ffmpeg.readFile(outputName);
+      
+      // Convert to Blob
+      const uint8Array = data instanceof Uint8Array ? data : new Uint8Array(data as unknown as ArrayBuffer);
+      const outputBlob = new Blob([uint8Array], { type: 'video/mp4' });
+      
+      // Create URL
+      const outputUrl = URL.createObjectURL(outputBlob);
+
+      // Cleanup
+      await this.ffmpeg.deleteFile(inputName);
+      await this.ffmpeg.deleteFile(outputName);
+
+      this.log('Conversion complete!');
+
+      return {
+        success: true,
+        outputUrl,
+        outputBlob,
+        duration: undefined
+      };
+
+    } catch (error) {
+      console.error('Video conversion error:', error);
+      this.log('Conversion error: ' + (error as Error).message);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Conversion failed'
+      };
+    }
   }
 
   async processVideo(
