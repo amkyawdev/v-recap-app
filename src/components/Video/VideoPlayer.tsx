@@ -2,15 +2,29 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
-  FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiAlertCircle
+  FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiAlertCircle,
+  FiRefreshCw, FiX
 } from 'react-icons/fi';
 
 interface VideoPlayerProps {
   src: string;
   onTimeUpdate?: (currentTime: number) => void;
+  isConverting?: boolean;
+  conversionProgress?: number;
+  errorMessage?: string | null;
+  onRetry?: () => void;
+  onClearError?: () => void;
 }
 
-export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) => {
+export const VideoPlayer: React.FC<VideoPlayerProps> = ({ 
+  src, 
+  onTimeUpdate,
+  isConverting = false,
+  conversionProgress = 0,
+  errorMessage = null,
+  onRetry,
+  onClearError
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -55,8 +69,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       switch (error.code) {
         case 1: message = 'Loading aborted'; break;
         case 2: message = 'Network error'; break;
-        case 3: message = 'Decoding error - corrupted file'; break;
-        case 4: message = 'Format not supported by browser (try MP4)'; break;
+        case 3: message = 'Video codec not supported - converting...'; break;
+        case 4: message = 'Video format not supported by browser'; break;
         default: message = `Unknown error (${error.code})`;
       }
       
@@ -116,12 +130,69 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
         className="w-full h-full object-contain bg-gray-900"
       />
       
-      {/* Debug/Error overlay */}
-      {videoError && (
-        <div className="absolute inset-0 bg-red-900/80 flex items-center justify-center">
-          <div className="text-center text-white p-4">
-            <FiAlertCircle className="text-4xl mb-2 mx-auto" />
-            <p>Video Error: {videoError}</p>
+      {/* Error overlay */}
+      {(videoError || errorMessage) && (
+        <div className="absolute inset-0 bg-red-900/90 flex items-center justify-center z-20">
+          <div className="text-center text-white p-6 max-w-sm">
+            <FiAlertCircle className="text-5xl mb-4 mx-auto text-red-400" />
+            <p className="text-lg font-semibold mb-2">
+              {videoError || errorMessage}
+            </p>
+            {(onRetry) && (
+              <button
+                onClick={onRetry}
+                className="mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-xl font-semibold flex items-center gap-2 mx-auto transition-colors"
+              >
+                <FiRefreshCw />
+                Retry Conversion
+              </button>
+            )}
+            {onClearError && (
+              <button
+                onClick={onClearError}
+                className="mt-2 text-white/60 hover:text-white text-sm flex items-center gap-1 mx-auto"
+              >
+                <FiX /> Dismiss
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Conversion progress overlay */}
+      {isConverting && (
+        <div className="absolute inset-0 bg-blue-900/95 flex items-center justify-center z-20">
+          <div className="text-center text-white p-6">
+            <div className="relative w-20 h-20 mx-auto mb-4">
+              <svg className="w-20 h-20 transform -rotate-90">
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                  className="text-white/20"
+                />
+                <circle
+                  cx="40"
+                  cy="40"
+                  r="36"
+                  stroke="currentColor"
+                  strokeWidth="4"
+                  fill="none"
+                  strokeDasharray={226}
+                  strokeDashoffset={226 - (226 * conversionProgress) / 100}
+                  strokeLinecap="round"
+                  className="text-blue-400 transition-all duration-300"
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <span className="text-xl font-bold">{conversionProgress}%</span>
+              </div>
+            </div>
+            <p className="text-lg font-semibold">Converting Video...</p>
+            <p className="text-white/60 text-sm mt-1">Optimizing for browser playback</p>
           </div>
         </div>
       )}
@@ -129,8 +200,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       {/* Play/Pause Overlay */}
       <motion.div 
         initial={{ opacity: 0 }}
-        animate={{ opacity: isPlaying ? 0 : 0.8 }}
-        className="absolute inset-0 flex items-center justify-center bg-black/30"
+        animate={{ opacity: isPlaying || isConverting || videoError || errorMessage ? 0 : 0.8 }}
+        className="absolute inset-0 flex items-center justify-center bg-black/30 z-10"
       >
         <button
           onClick={togglePlay}
@@ -143,8 +214,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       {/* Custom Controls Bar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: showControls ? 1 : 0, y: showControls ? 0 : 20 }}
-        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
+        animate={{ opacity: showControls && !isConverting && !videoError && !errorMessage ? 1 : 0, y: showControls ? 0 : 20 }}
+        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 z-10"
       >
         {/* Progress Bar */}
         <div 
