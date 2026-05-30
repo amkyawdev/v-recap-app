@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
-  FiVolume2, FiVolumeX, FiMaximize, FiSettings
+  FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiAlertCircle
 } from 'react-icons/fi';
 
 interface VideoPlayerProps {
@@ -18,8 +18,10 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [hasError, setHasError] = useState(false);
 
   useEffect(() => {
+    setHasError(false);
     const video = videoRef.current;
     if (!video) return;
 
@@ -32,14 +34,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       setDuration(video.duration);
     };
 
+    const handleError = () => {
+      console.error('VideoPlayer: Video error', video.error);
+      setHasError(true);
+    };
+
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('error', handleError);
     };
-  }, [onTimeUpdate]);
+  }, [onTimeUpdate, src]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -78,9 +87,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
+      {hasError ? (
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+          <FiAlertCircle className="text-4xl text-red-400 mb-2" />
+          <p className="text-white/60 text-sm">Video cannot be played</p>
+          <p className="text-white/40 text-xs mt-1">Check console for details</p>
+        </div>
+      ) : (
+        <>
       <video
         ref={videoRef}
         src={src}
+        crossOrigin="anonymous"
+        controls
+        preload="metadata"
         className="w-full h-full object-contain"
         onClick={togglePlay}
       />
@@ -171,6 +191,8 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
           </div>
         </div>
       </motion.div>
+        </>
+      )}
     </div>
   );
 };

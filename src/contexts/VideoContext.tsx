@@ -23,11 +23,13 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
   const [processingJobs, setProcessingJobs] = useState<ProcessingJob[]>([]);
 
   const addVideo = useCallback(async (file: File): Promise<void> => {
+    console.log('VideoContext: Adding video', file.name);
     return new Promise((resolve, reject) => {
       const videoUrl = URL.createObjectURL(file);
       const videoElement = document.createElement('video');
       
       videoElement.onloadedmetadata = () => {
+        console.log('VideoContext: Metadata loaded', videoElement.duration);
         const video: VideoFile = {
           id: uuidv4(),
           file,
@@ -40,14 +42,37 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         
         setVideos(prev => [...prev, video]);
         setCurrentVideo(video);
+        console.log('VideoContext: Video added successfully');
         resolve(undefined);
       };
       
-      videoElement.onerror = () => {
-        reject(new Error('Failed to load video'));
+      videoElement.onloadeddata = () => {
+        // Fallback if metadata doesn't fire
+        if (videoElement.readyState >= 2) {
+          console.log('VideoContext: Data loaded fallback', videoElement.duration);
+          const video: VideoFile = {
+            id: uuidv4(),
+            file,
+            name: file.name,
+            size: file.size,
+            duration: videoElement.duration || 0,
+            thumbnail: '',
+            url: videoUrl
+          };
+          
+          setVideos(prev => [...prev, video]);
+          setCurrentVideo(video);
+          resolve(undefined);
+        }
+      };
+      
+      videoElement.onerror = (e) => {
+        console.error('VideoContext: Failed to load video', e);
+        reject(new Error('Failed to load video: ' + file.name));
       };
       
       videoElement.src = videoUrl;
+      videoElement.load();
     });
   }, []);
 
