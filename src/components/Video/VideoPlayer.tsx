@@ -136,7 +136,6 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       <video
         ref={videoRef}
         src={src}
-        controls
         preload="auto"
         playsInline
         className="w-full h-full object-contain"
@@ -157,7 +156,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
         </button>
       </motion.div>
 
-      {/* Controls */}
+      {/* Custom Controls Bar */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: showControls ? 1 : 0, y: showControls ? 0 : 20 }}
