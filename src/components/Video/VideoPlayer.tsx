@@ -130,13 +130,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
         className="w-full h-full object-contain bg-gray-900"
       />
       
-      {/* Error overlay */}
-      {(videoError || errorMessage) && (
+      {/* Error overlay - only show when NOT converting */}
+      {(videoError && !isConverting) && (
         <div className="absolute inset-0 bg-red-900/90 flex items-center justify-center z-20">
           <div className="text-center text-white p-6 max-w-sm">
             <FiAlertCircle className="text-5xl mb-4 mx-auto text-red-400" />
             <p className="text-lg font-semibold mb-2">
-              {videoError || errorMessage}
+              {videoError}
             </p>
             {(onRetry) && (
               <button

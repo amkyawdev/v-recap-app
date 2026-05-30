@@ -38,6 +38,7 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Clear previous error
     setErrorMessage(null);
     setConversionProgress(0);
+    setIsConverting(false); // Reset state
     
     const videoUrl = URL.createObjectURL(file);
     
@@ -76,7 +77,9 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       testVideo.onerror = () => {
         console.log('VideoContext: Codec not supported, will convert with FFmpeg');
         clearTimeout(timeoutId);
-        
+        // Set converting state BEFORE starting conversion to hide error in VideoPlayer
+        setIsConverting(true);
+        setConversionProgress(0);
         // Start conversion
         performConversion(file, videoUrl, newVideo.id);
         resolve();
@@ -85,6 +88,9 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
       // Timeout after 3 seconds - consider as needing conversion
       timeoutId = setTimeout(() => {
         console.log('VideoContext: Timeout, starting conversion');
+        // Set converting state BEFORE starting conversion to hide error in VideoPlayer
+        setIsConverting(true);
+        setConversionProgress(0);
         performConversion(file, videoUrl, newVideo.id);
         resolve();
       }, 3000);
