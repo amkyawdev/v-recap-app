@@ -147,17 +147,20 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
         URL.revokeObjectURL(originalUrl);
         
         setConversionProgress(100);
+        setPendingFile(null); // Clear on success
       } else {
         console.log('VideoContext: Conversion failed');
         setErrorMessage(result.error || 'Video format not supported. Please try MP4 format.');
+        // Keep pendingFile for retry
       }
     } catch (err) {
       console.error('VideoContext: Conversion error', err);
       setErrorMessage('Failed to convert video. Please try a different format.');
+      // Keep pendingFile for retry
     }
 
     setIsConverting(false);
-    setPendingFile(null);
+    // Don't clear pendingFile on failure - needed for retry
   }, []);
 
   // Clear error message

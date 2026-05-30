@@ -131,30 +131,44 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
       />
       
       {/* Error overlay - only show when NOT converting */}
-      {(videoError && !isConverting) && (
-        <div className="absolute inset-0 bg-red-900/90 flex items-center justify-center z-20">
-          <div className="text-center text-white p-6 max-w-sm">
+      {((videoError || errorMessage) && !isConverting) && (
+        <div 
+          className="absolute inset-0 bg-red-900/90 flex items-center justify-center z-50"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="text-center text-white p-6 max-w-sm mx-4">
             <FiAlertCircle className="text-5xl mb-4 mx-auto text-red-400" />
-            <p className="text-lg font-semibold mb-2">
-              {videoError}
+            <p className="text-lg font-semibold mb-4">
+              {videoError || errorMessage || 'Video format not supported'}
             </p>
-            {(onRetry) && (
-              <button
-                onClick={onRetry}
-                className="mt-4 px-6 py-3 bg-blue-500 hover:bg-blue-600 rounded-xl font-semibold flex items-center gap-2 mx-auto transition-colors"
-              >
-                <FiRefreshCw />
-                Retry Conversion
-              </button>
-            )}
-            {onClearError && (
-              <button
-                onClick={onClearError}
-                className="mt-2 text-white/60 hover:text-white text-sm flex items-center gap-1 mx-auto"
-              >
-                <FiX /> Dismiss
-              </button>
-            )}
+            <div className="flex flex-col gap-3">
+              {onRetry && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Retry button clicked');
+                    onRetry();
+                  }}
+                  className="w-full px-6 py-3 bg-blue-500 hover:bg-blue-600 active:bg-blue-700 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all cursor-pointer"
+                >
+                  <FiRefreshCw className="text-xl" />
+                  <span>Retry Conversion</span>
+                </button>
+              )}
+              {onClearError && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    console.log('Dismiss button clicked');
+                    onClearError();
+                  }}
+                  className="px-4 py-2 text-white/60 hover:text-white text-sm flex items-center justify-center gap-1 cursor-pointer"
+                >
+                  <FiX />
+                  <span>Dismiss</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
       )}
