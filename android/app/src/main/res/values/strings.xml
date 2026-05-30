@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">V-Recap</string>
+    <string name="title_activity_main">V-Recap</string>
+    <string name="package_name">com.amkyawdev.vrecap</string>
+    <string name="custom_url_scheme">com.amkyawdev.vrecap</string>
+</resources>
