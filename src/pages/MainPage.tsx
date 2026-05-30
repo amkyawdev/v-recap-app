@@ -31,12 +31,11 @@ const MainPage: React.FC = () => {
     const file = acceptedFiles[0];
     console.log('MainPage: File selected', file.name, file.type, file.size);
     
-    // Validate file type
-    const validTypes = ['video/mp4', 'video/quicktime', 'video/x-msvideo', 'video/webm', 'video/x-matroska'];
-    const validExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv'];
+    // Validate by extension only (more lenient)
+    const validExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv', '.3gp'];
     const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
     
-    if (!validTypes.includes(file.type) && !validExtensions.includes(ext)) {
+    if (ext && !validExtensions.includes(ext)) {
       setUploadStatus({
         id: `invalid-${Date.now()}`,
         name: file.name,
@@ -67,7 +66,7 @@ const MainPage: React.FC = () => {
       // Add video
       console.log('MainPage: Calling addVideo...');
       await addVideo(file);
-      console.log('MainPage: addVideo completed');
+      console.log('MainPage: addVideo completed, navigating to video-editing');
       
       setUploadStatus({
         id: tempId,
@@ -78,6 +77,7 @@ const MainPage: React.FC = () => {
 
       // Navigate after success
       setTimeout(() => {
+        console.log('MainPage: Navigating to /video-editing');
         navigate('/video-editing');
       }, 500);
 
@@ -117,14 +117,10 @@ const MainPage: React.FC = () => {
     onDrop,
     onDropRejected,
     accept: {
-      'video/mp4': ['.mp4'],
-      'video/quicktime': ['.mov'],
-      'video/x-msvideo': ['.avi'],
-      'video/webm': ['.webm'],
-      'video/x-matroska': ['.mkv']
+      'video/*': []  // Accept all video types
     },
     multiple: false,
-    maxSize: 500 * 1024 * 1024
+    maxSize: 1000 * 1024 * 1024  // 1GB for phone videos
   });
 
   const quickActions = [
