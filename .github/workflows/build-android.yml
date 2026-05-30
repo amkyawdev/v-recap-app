@@ -38,12 +38,9 @@ jobs:
       - name: Build React Web App
         run: npm run build
 
-      # ၆။ Capacitor ကို Initialize လုပ်ပြီး Android Platform နှင့် Sync လုပ်ခြင်း
+      # ၆။ Capacitor Android Platform Sync လုပ်ခြင်း
       - name: Sync Capacitor Android
-        run: |
-          npx cap init "V-Recap" "com.amkyawdev.vrecap" --web-dir=dist || true
-          npx cap add android || true
-          npx cap sync
+        run: npx cap sync android
 
       # ၇။ Android Studio မလိုဘဲ Gradle ဖြင့် APK ထုတ်ခြင်း
       - name: Build APK with Gradle
@@ -58,4 +55,5 @@ jobs:
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          retention-days: 7
         
