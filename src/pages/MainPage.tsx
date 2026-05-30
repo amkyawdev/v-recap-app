@@ -26,27 +26,15 @@ const MainPage: React.FC = () => {
   const [uploadStatus, setUploadStatus] = useState<UploadStatus | null>(null);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
+    if (acceptedFiles.length === 0) {
+      console.log('MainPage: No files accepted');
+      return;
+    }
     
     const file = acceptedFiles[0];
     console.log('MainPage: File selected', file.name, file.type, file.size);
     
-    // Validate by extension only (more lenient)
-    const validExtensions = ['.mp4', '.mov', '.avi', '.webm', '.mkv', '.3gp'];
-    const ext = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
-    
-    if (ext && !validExtensions.includes(ext)) {
-      setUploadStatus({
-        id: `invalid-${Date.now()}`,
-        name: file.name,
-        progress: 0,
-        status: 'error',
-        message: 'Unsupported video format'
-      });
-      setTimeout(() => setUploadStatus(null), 3000);
-      return;
-    }
-    
+    // Skip validation - accept any file for testing
     const tempId = `upload-${Date.now()}`;
     
     setUploadStatus({
@@ -65,8 +53,8 @@ const MainPage: React.FC = () => {
 
       // Add video
       console.log('MainPage: Calling addVideo...');
-      await addVideo(file);
-      console.log('MainPage: addVideo completed, navigating to video-editing');
+      const result = await addVideo(file);
+      console.log('MainPage: addVideo completed, result:', result);
       
       setUploadStatus({
         id: tempId,
@@ -75,11 +63,11 @@ const MainPage: React.FC = () => {
         status: 'success'
       });
 
-      // Navigate after success
+      // Navigate after success - ensure state is updated first
       setTimeout(() => {
         console.log('MainPage: Navigating to /video-editing');
-        navigate('/video-editing');
-      }, 500);
+        navigate('/video-editing', { replace: true });
+      }, 1000);
 
     } catch (err) {
       console.error('MainPage: Error adding video', err);

@@ -24,74 +24,49 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
 
   const addVideo = useCallback(async (file: File): Promise<void> => {
     console.log('VideoContext: Adding video', file.name, file.type, file.size);
-    return new Promise((resolve, reject) => {
-      const videoUrl = URL.createObjectURL(file);
-      console.log('VideoContext: Created object URL');
-      
-      // Try to get video metadata
-      const videoElement = document.createElement('video');
-      videoElement.preload = 'metadata';
-      videoElement.muted = true; // Muted to avoid autoplay issues
-      
-      // Set timeout for metadata loading
-      const timeoutId = setTimeout(() => {
-        console.log('VideoContext: Timeout - using fallback');
-        // Fallback: create video object without duration
-        const video: VideoFile = {
-          id: uuidv4(),
-          file,
-          name: file.name,
-          size: file.size,
-          duration: 0, // Will be updated when video plays
-          thumbnail: '',
-          url: videoUrl
-        };
-        
-        setVideos(prev => [...prev, video]);
-        setCurrentVideo(video);
-        console.log('VideoContext: Video added (timeout fallback)');
-        resolve(undefined);
-      }, 3000);
-      
+    
+    const videoUrl = URL.createObjectURL(file);
+    console.log('VideoContext: Created object URL');
+    
+    // Create video object immediately
+    const newVideo: VideoFile = {
+      id: uuidv4(),
+      file,
+      name: file.name,
+      size: file.size,
+      duration: 0,
+      thumbnail: '',
+      url: videoUrl
+    };
+    
+    console.log('VideoContext: Setting state with new video');
+    
+    // Set state immediately and wait for it
+    setVideos(prev => [...prev, newVideo]);
+    setCurrentVideo(newVideo);
+    
+    // Try to get duration
+    const videoElement = document.createElement('video');
+    videoElement.preload = 'metadata';
+    videoElement.muted = true;
+    
+    return new Promise((resolve) => {
       videoElement.onloadedmetadata = () => {
         console.log('VideoContext: Metadata loaded', videoElement.duration);
-        clearTimeout(timeoutId);
-        const video: VideoFile = {
-          id: uuidv4(),
-          file,
-          name: file.name,
-          size: file.size,
-          duration: videoElement.duration,
-          thumbnail: '',
-          url: videoUrl
-        };
-        
-        setVideos(prev => [...prev, video]);
-        setCurrentVideo(video);
-        console.log('VideoContext: Video added successfully');
-        resolve(undefined);
+        setCurrentVideo(prev => prev ? { ...prev, duration: videoElement.duration } : null);
+        resolve();
       };
       
-      videoElement.onerror = (e) => {
-        clearTimeout(timeoutId);
-        console.error('VideoContext: Video error', e, videoElement.error);
-        // Still try to add the video even if there's an error
-        // Some browsers report error for valid videos
-        const video: VideoFile = {
-          id: uuidv4(),
-          file,
-          name: file.name,
-          size: file.size,
-          duration: 0,
-          thumbnail: '',
-          url: videoUrl
-        };
-        
-        setVideos(prev => [...prev, video]);
-        setCurrentVideo(video);
-        console.log('VideoContext: Video added (error fallback)');
-        resolve(undefined);
+      videoElement.onerror = () => {
+        console.log('VideoContext: Metadata error (using 0 duration)');
+        resolve();
       };
+      
+      // Timeout after 2 seconds
+      setTimeout(() => {
+        console.log('VideoContext: Timeout, resolving');
+        resolve();
+      }, 2000);
       
       videoElement.src = videoUrl;
     });
