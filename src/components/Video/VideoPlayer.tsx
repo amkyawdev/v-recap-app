@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
@@ -18,6 +18,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
+  const [videoError, setVideoError] = useState<string>('');
+
+  // Log when src changes
+  useEffect(() => {
+    console.log('VideoPlayer: src changed to:', src ? 'blob URL exists' : 'empty');
+    setVideoError('');
+  }, [src]);
 
   // Handle video events
   const handleTimeUpdate = () => {
@@ -31,12 +38,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
     if (videoRef.current) {
       console.log('VideoPlayer: Metadata loaded, duration:', videoRef.current.duration);
       setDuration(videoRef.current.duration);
+      setVideoError('');
     }
   };
 
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
+  
+  const handleError = () => {
+    if (videoRef.current?.error) {
+      const error = videoRef.current.error;
+      console.error('VideoPlayer: Error', error);
+      setVideoError(`Error code: ${error.code}`);
+    }
+  };
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -86,8 +102,19 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
         onPlay={handlePlay}
         onPause={handlePause}
         onEnded={handleEnded}
+        onError={handleError}
         className="w-full h-full object-contain bg-gray-900"
       />
+      
+      {/* Debug/Error overlay */}
+      {videoError && (
+        <div className="absolute inset-0 bg-red-900/80 flex items-center justify-center">
+          <div className="text-center text-white p-4">
+            <FiAlertCircle className="text-4xl mb-2 mx-auto" />
+            <p>Video Error: {videoError}</p>
+          </div>
+        </div>
+      )}
 
       {/* Play/Pause Overlay */}
       <motion.div 
