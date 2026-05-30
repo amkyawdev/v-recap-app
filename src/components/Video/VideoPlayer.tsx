@@ -89,7 +89,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   };
 
   return (
-    <div className="relative rounded-2xl overflow-hidden bg-black aspect-video">
+    <div className="relative rounded-2xl overflow-hidden bg-gray-900" style={{ aspectRatio: '16/9' }}>
       <video
         ref={videoRef}
         src={src}
@@ -104,17 +104,18 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
         onEnded={handleEnded}
         onError={handleError}
         className="w-full h-full"
+        style={{ objectFit: 'contain' }}
       />
 
       {/* Play/Pause Overlay */}
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: isPlaying ? 0 : 0.8 }}
-        className="absolute inset-0 flex items-center justify-center bg-black/30"
+        className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none"
       >
         <button
           onClick={togglePlay}
-          className="p-6 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors"
+          className="p-6 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors pointer-events-auto"
         >
           <FiPlay size={40} className="text-white ml-1" />
         </button>
