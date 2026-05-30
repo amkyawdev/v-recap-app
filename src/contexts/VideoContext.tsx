@@ -38,44 +38,33 @@ export const VideoProvider: React.FC<{ children: ReactNode }> = ({ children }) =
     // Clear previous error
     setErrorMessage(null);
     
-    // Create blob URL immediately
-    const videoUrl = URL.createObjectURL(file);
-    console.log('VideoContext: Created blob URL');
+    // Keep reference to file for blob URL
+    const fileObj = file;
     
-    // Create video object immediately (don't wait for metadata)
+    // Create blob URL - this needs to stay valid
+    const videoUrl = URL.createObjectURL(fileObj);
+    console.log('VideoContext: Created blob URL:', videoUrl);
+    
+    // Create video object with the blob URL
     const newVideo: VideoFile = {
       id: uuidv4(),
-      file,
-      name: file.name,
-      size: file.size,
+      file: fileObj,
+      name: fileObj.name,
+      size: fileObj.size,
       duration: 0,
       thumbnail: '',
       url: videoUrl
     };
     
-    console.log('VideoContext: Setting currentVideo immediately');
+    console.log('VideoContext: Setting currentVideo with URL:', newVideo.url);
     
     // Set state immediately
     setVideos(prev => [...prev, newVideo]);
     setCurrentVideo(newVideo);
     
-    // Try to get duration in background (don't block)
-    const tempVideo = document.createElement('video');
-    tempVideo.preload = 'metadata';
-    tempVideo.muted = true;
+    console.log('VideoContext: Video added');
     
-    tempVideo.onloadedmetadata = () => {
-      console.log('VideoContext: Metadata loaded, duration:', tempVideo.duration);
-      setCurrentVideo(prev => prev ? { ...prev, duration: tempVideo.duration } : null);
-    };
-    
-    tempVideo.onerror = () => {
-      console.error('VideoContext: Video load error (non-fatal)');
-    };
-    
-    tempVideo.src = videoUrl;
-    
-    console.log('VideoContext: Video added, URL set');
+    // Don't wait for metadata - let the component handle it
     return Promise.resolve();
   }, []);
 

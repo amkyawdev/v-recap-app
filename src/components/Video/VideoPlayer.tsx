@@ -25,8 +25,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   useEffect(() => {
     console.log('VideoPlayer: src changed');
     console.log('VideoPlayer: src length:', src?.length || 0);
-    console.log('VideoPlayer: src preview:', src?.substring(0, 50));
+    console.log('VideoPlayer: src starts with blob:', src?.startsWith('blob:'));
     setVideoError('');
+    
+    // Verify blob URL is valid
+    if (src?.startsWith('blob:')) {
+      console.log('VideoPlayer: Blob URL looks valid');
+    }
   }, [src]);
 
   // Handle video events
@@ -116,26 +121,29 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       onMouseLeave={() => setShowControls(false)}
     >
       {/* Debug info */}
-      <div className="absolute top-2 left-2 z-30 bg-black/50 px-2 py-1 rounded text-xs text-white/50">
-        src: {src ? 'blob URL' : 'empty'}
+      <div className="absolute top-2 left-2 z-30 bg-black/70 px-3 py-1 rounded text-xs text-white">
+        src: {src ? '✓ blob URL' : '✗ empty'}
       </div>
       
-      <video
-        ref={videoRef}
-        src={src}
-        preload="metadata"
-        playsInline
-        onClick={togglePlay}
-        onTimeUpdate={handleTimeUpdate}
-        onLoadedMetadata={handleLoadedMetadata}
-        onCanPlay={handleCanPlay}
-        onPlay={handlePlay}
-        onPause={handlePause}
-        onEnded={handleEnded}
-        onError={handleError}
-        className="w-full h-full object-contain bg-gray-900"
-        style={{ display: 'block', width: '100%', height: '100%' }}
-      />
+      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
+        <video
+          ref={videoRef}
+          src={src}
+          preload="metadata"
+          playsInline
+          controls
+          onClick={togglePlay}
+          onTimeUpdate={handleTimeUpdate}
+          onLoadedMetadata={handleLoadedMetadata}
+          onCanPlay={handleCanPlay}
+          onPlay={handlePlay}
+          onPause={handlePause}
+          onEnded={handleEnded}
+          onError={handleError}
+          className="max-w-full max-h-full"
+          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
+        />
+      </div>
 
       {/* Play/Pause Overlay */}
       <motion.div 
