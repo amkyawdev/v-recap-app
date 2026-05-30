@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
   FiVolume2, FiVolumeX, FiMaximize, FiSettings
@@ -17,11 +16,12 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(1);
   const [isMuted, setIsMuted] = useState(false);
-  const [videoError, setVideoError] = useState<string>('');
 
-  // Clear error when src changes
+  // Clear states when src changes
   useEffect(() => {
-    setVideoError('');
+    setIsPlaying(false);
+    setCurrentTime(0);
+    setDuration(0);
   }, [src]);
 
   // Handle video events
@@ -35,26 +35,15 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
       setDuration(videoRef.current.duration);
-      setVideoError('');
     }
-  };
-
-  const handleCanPlay = () => {
-    // Video is ready
   };
 
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
   
-  const handleError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    console.error('VideoPlayer: Error!', video.error);
-    if (video.error?.code === 4) {
-      setVideoError('Format not supported');
-    } else {
-      setVideoError('Video error');
-    }
+  const handleError = () => {
+    console.error('Video error');
   };
 
   const togglePlay = () => {
@@ -89,108 +78,66 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   };
 
   return (
-    <div className="relative rounded-2xl overflow-hidden bg-gray-900" style={{ aspectRatio: '16/9' }}>
+    <div className="relative rounded-2xl overflow-hidden bg-black">
+      {/* Video element - simple and direct */}
       <video
         ref={videoRef}
         src={src}
         preload="auto"
-        playsInline
+        className="w-full h-auto block"
         onClick={togglePlay}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
-        onCanPlay={handleCanPlay}
         onPlay={handlePlay}
         onPause={handlePause}
         onEnded={handleEnded}
         onError={handleError}
-        className="w-full h-full"
-        style={{ objectFit: 'contain' }}
       />
 
       {/* Play/Pause Overlay */}
-      <motion.div 
-        initial={{ opacity: 0 }}
-        animate={{ opacity: isPlaying ? 0 : 0.8 }}
-        className="absolute inset-0 flex items-center justify-center bg-black/30 pointer-events-none"
-      >
-        <button
-          onClick={togglePlay}
-          className="p-6 rounded-full bg-white/20 backdrop-blur-sm hover:bg-white/30 transition-colors pointer-events-auto"
-        >
-          <FiPlay size={40} className="text-white ml-1" />
-        </button>
-      </motion.div>
+      {!isPlaying && (
+        <div className="absolute inset-0 flex items-center justify-center bg-black/40 cursor-pointer" onClick={togglePlay}>
+          <div className="p-8 rounded-full bg-white/30 backdrop-blur-sm">
+            <FiPlay size={48} className="text-white" />
+          </div>
+        </div>
+      )}
 
-      {/* Custom Controls Bar */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4"
-      >
-        {/* Progress Bar */}
-        <div 
-          className="w-full h-1 bg-white/30 rounded-full mb-4 cursor-pointer"
-          onClick={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            const percent = (e.clientX - rect.left) / rect.width;
-            handleSeek(percent * duration);
-          }}
-        >
-          <div 
-            className="h-full bg-accent-500 rounded-full"
-            style={{ width: `${duration ? (currentTime / duration) * 100 : 0}%` }}
+      {/* Controls Bar */}
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/90 to-transparent p-4">
+        <div className="flex items-center gap-3">
+          <button onClick={togglePlay} className="p-2 hover:bg-white/20 rounded-lg">
+            {isPlaying ? <FiPause className="text-white" /> : <FiPlay className="text-white" />}
+          </button>
+          <button onClick={() => handleSeek(Math.max(0, currentTime - 10))} className="p-2 hover:bg-white/20 rounded-lg">
+            <FiSkipBack className="text-white" />
+          </button>
+          <button onClick={() => handleSeek(Math.min(duration, currentTime + 10))} className="p-2 hover:bg-white/20 rounded-lg">
+            <FiSkipForward className="text-white" />
+          </button>
+          <button onClick={toggleMute} className="p-2 hover:bg-white/20 rounded-lg">
+            {isMuted ? <FiVolumeX className="text-white" /> : <FiVolume2 className="text-white" />}
+          </button>
+          <input
+            type="range"
+            min="0"
+            max="1"
+            step="0.1"
+            value={isMuted ? 0 : volume}
+            onChange={(e) => {
+              const val = parseFloat(e.target.value);
+              setVolume(val);
+              if (videoRef.current) videoRef.current.volume = val;
+            }}
+            className="w-20"
           />
-        </div>
-
-        {/* Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <button onClick={togglePlay} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              {isPlaying ? <FiPause className="text-white" /> : <FiPlay className="text-white" />}
-            </button>
-            
-            <button onClick={() => handleSeek(Math.max(0, currentTime - 10))} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <FiSkipBack className="text-white" />
-            </button>
-            
-            <button onClick={() => handleSeek(Math.min(duration, currentTime + 10))} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <FiSkipForward className="text-white" />
-            </button>
-
-            <div className="flex items-center gap-2 ml-2">
-              <button onClick={toggleMute} className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-                {isMuted ? <FiVolumeX className="text-white" /> : <FiVolume2 className="text-white" />}
-              </button>
-              <input
-                type="range"
-                min="0"
-                max="1"
-                step="0.1"
-                value={isMuted ? 0 : volume}
-                onChange={(e) => {
-                  const val = parseFloat(e.target.value);
-                  setVolume(val);
-                  if (videoRef.current) videoRef.current.volume = val;
-                }}
-                className="w-20 h-1 bg-white/30 rounded-full appearance-none cursor-pointer"
-              />
-            </div>
-
-            <span className="text-white text-sm ml-2">
-              {formatTime(currentTime)} / {formatTime(duration)}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <FiSettings className="text-white" />
-            </button>
-            <button className="p-2 hover:bg-white/10 rounded-lg transition-colors">
-              <FiMaximize className="text-white" />
-            </button>
+          <span className="text-white text-sm">{formatTime(currentTime)} / {formatTime(duration)}</span>
+          <div className="ml-auto flex gap-2">
+            <button className="p-2 hover:bg-white/20 rounded-lg"><FiSettings className="text-white" /></button>
+            <button className="p-2 hover:bg-white/20 rounded-lg"><FiMaximize className="text-white" /></button>
           </div>
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 };
