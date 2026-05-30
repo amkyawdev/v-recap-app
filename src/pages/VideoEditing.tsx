@@ -276,6 +276,9 @@ const VideoEditing: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               className="card p-3"
             >
+              <div className="debug-info text-xs text-white/30 mb-2">
+                Video: {currentVideo?.name || 'none'} | URL: {currentVideo?.url ? 'exists' : 'empty'}
+              </div>
               {currentVideo ? (
                 <VideoPlayer src={currentVideo.url} />
               ) : (
