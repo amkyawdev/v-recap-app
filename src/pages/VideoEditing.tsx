@@ -63,10 +63,6 @@ const filterOptions = [
 const VideoEditing: React.FC = () => {
   const navigate = useNavigate();
   const { currentVideo } = useVideo();
-  
-  console.log('VideoEditing: currentVideo =', currentVideo);
-  console.log('VideoEditing: currentVideo?.url =', currentVideo?.url);
-  
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [showToolPanel, setShowToolPanel] = useState(false);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
@@ -281,18 +277,12 @@ const VideoEditing: React.FC = () => {
               className="card p-3"
             >
               {currentVideo && currentVideo.url ? (
-                <div key={currentVideo.id}>
-                  <VideoPlayer src={currentVideo.url} />
-                  <div className="text-xs text-white/30 mt-2 text-center">
-                    Playing: {currentVideo.name}
-                  </div>
-                </div>
+                <VideoPlayer src={currentVideo.url} />
               ) : (
                 <div className="aspect-video flex items-center justify-center bg-gradient-to-br from-blue-900 to-blue-800 rounded-xl">
                   <div className="text-center">
                     <FiVideo className="text-4xl text-white/30 mx-auto mb-3" />
                     <p className="text-white/50 text-sm">Upload a video to start editing</p>
-                    <p className="text-white/30 text-xs mt-1">currentVideo: {currentVideo ? 'exists but no url' : 'null'}</p>
                   </div>
                 </div>
               )}

@@ -2,8 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   FiPlay, FiPause, FiSkipBack, FiSkipForward,
-  FiVolume2, FiVolumeX, FiMaximize, FiSettings, FiAlertCircle,
-  FiRefreshCw, FiX
+  FiVolume2, FiVolumeX, FiMaximize, FiSettings
 } from 'react-icons/fi';
 
 interface VideoPlayerProps {
@@ -23,15 +22,7 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
 
   // Log when src changes
   useEffect(() => {
-    console.log('VideoPlayer: src changed');
-    console.log('VideoPlayer: src length:', src?.length || 0);
-    console.log('VideoPlayer: src starts with blob:', src?.startsWith('blob:'));
     setVideoError('');
-    
-    // Verify blob URL is valid
-    if (src?.startsWith('blob:')) {
-      console.log('VideoPlayer: Blob URL looks valid');
-    }
   }, [src]);
 
   // Handle video events
@@ -44,43 +35,30 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      console.log('VideoPlayer: Metadata loaded!');
-      console.log('VideoPlayer: videoWidth:', videoRef.current.videoWidth);
-      console.log('VideoPlayer: videoHeight:', videoRef.current.videoHeight);
-      console.log('VideoPlayer: duration:', videoRef.current.duration);
       setDuration(videoRef.current.duration);
       setVideoError('');
     }
   };
 
   const handleCanPlay = () => {
-    console.log('VideoPlayer: Can play event');
+    // Video is ready
   };
 
   const handlePlay = () => setIsPlaying(true);
   const handlePause = () => setIsPlaying(false);
   const handleEnded = () => setIsPlaying(false);
   
-  const handleError = (e: React.SyntheticEvent<HTMLVideoElement>) => {
-    const video = e.currentTarget;
-    const error = video.error;
-    console.error('VideoPlayer: Error code:', error?.code);
-    console.error('VideoPlayer: Error message:', error?.message);
-    
-    let message = '';
-    if (error) {
-      switch (error.code) {
-        case 1: message = 'Loading aborted'; break;
-        case 2: message = 'Network error'; break;
-        case 3: message = 'Decoding error'; break;
-        case 4: message = 'Format not supported'; break;
-        default: message = `Error: ${error.code}`;
+  const handleError = () => {
+    if (videoRef.current?.error) {
+      const error = videoRef.current.error;
+      let message = '';
+      if (error.code === 4) {
+        message = 'Video format not supported';
+      } else {
+        message = 'Video error';
       }
-    } else {
-      message = 'Unknown error';
+      setVideoError(message);
     }
-    
-    setVideoError(message);
   };
 
   const togglePlay = () => {
@@ -120,30 +98,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
-      {/* Debug info */}
-      <div className="absolute top-2 left-2 z-30 bg-black/70 px-3 py-1 rounded text-xs text-white">
-        src: {src ? '✓ blob URL' : '✗ empty'}
-      </div>
-      
-      <div className="w-full h-full bg-gray-900 flex items-center justify-center">
-        <video
-          ref={videoRef}
-          src={src}
-          preload="metadata"
-          playsInline
-          controls
-          onClick={togglePlay}
-          onTimeUpdate={handleTimeUpdate}
-          onLoadedMetadata={handleLoadedMetadata}
-          onCanPlay={handleCanPlay}
-          onPlay={handlePlay}
-          onPause={handlePause}
-          onEnded={handleEnded}
-          onError={handleError}
-          className="max-w-full max-h-full"
-          style={{ maxWidth: '100%', maxHeight: '100%', objectFit: 'contain' }}
-        />
-      </div>
+      <video
+        ref={videoRef}
+        src={src}
+        preload="metadata"
+        playsInline
+        onClick={togglePlay}
+        onTimeUpdate={handleTimeUpdate}
+        onLoadedMetadata={handleLoadedMetadata}
+        onCanPlay={handleCanPlay}
+        onPlay={handlePlay}
+        onPause={handlePause}
+        onEnded={handleEnded}
+        onError={handleError}
+        className="w-full h-full object-contain"
+      />
 
       {/* Play/Pause Overlay */}
       <motion.div 
