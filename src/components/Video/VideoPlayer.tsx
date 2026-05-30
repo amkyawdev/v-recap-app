@@ -23,8 +23,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
 
   // Log when src changes
   useEffect(() => {
-    console.log('VideoPlayer: src changed to:', src ? 'blob URL exists' : 'empty');
-    console.log('VideoPlayer: src value =', src);
+    console.log('VideoPlayer: src changed');
+    console.log('VideoPlayer: src length:', src?.length || 0);
+    console.log('VideoPlayer: src preview:', src?.substring(0, 50));
     setVideoError('');
   }, [src]);
 
@@ -38,10 +39,17 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
 
   const handleLoadedMetadata = () => {
     if (videoRef.current) {
-      console.log('VideoPlayer: Metadata loaded, duration:', videoRef.current.duration);
+      console.log('VideoPlayer: Metadata loaded!');
+      console.log('VideoPlayer: videoWidth:', videoRef.current.videoWidth);
+      console.log('VideoPlayer: videoHeight:', videoRef.current.videoHeight);
+      console.log('VideoPlayer: duration:', videoRef.current.duration);
       setDuration(videoRef.current.duration);
       setVideoError('');
     }
+  };
+
+  const handleCanPlay = () => {
+    console.log('VideoPlayer: Can play event');
   };
 
   const handlePlay = () => setIsPlaying(true);
@@ -107,19 +115,26 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       onMouseEnter={() => setShowControls(true)}
       onMouseLeave={() => setShowControls(false)}
     >
+      {/* Debug info */}
+      <div className="absolute top-2 left-2 z-30 bg-black/50 px-2 py-1 rounded text-xs text-white/50">
+        src: {src ? 'blob URL' : 'empty'}
+      </div>
+      
       <video
         ref={videoRef}
         src={src}
-        preload="auto"
+        preload="metadata"
         playsInline
         onClick={togglePlay}
         onTimeUpdate={handleTimeUpdate}
         onLoadedMetadata={handleLoadedMetadata}
+        onCanPlay={handleCanPlay}
         onPlay={handlePlay}
         onPause={handlePause}
         onEnded={handleEnded}
         onError={handleError}
         className="w-full h-full object-contain bg-gray-900"
+        style={{ display: 'block', width: '100%', height: '100%' }}
       />
 
       {/* Play/Pause Overlay */}
