@@ -19,9 +19,13 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
   const [isMuted, setIsMuted] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [hasError, setHasError] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
   useEffect(() => {
     setHasError(false);
+    setErrorMessage('');
+    console.log('VideoPlayer: Loading video from:', src);
+    
     const video = videoRef.current;
     if (!video) return;
 
@@ -31,24 +35,45 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
     };
 
     const handleLoadedMetadata = () => {
+      console.log('VideoPlayer: Metadata loaded, duration:', video.duration);
       setDuration(video.duration);
+      setHasError(false);
+    };
+
+    const handleCanPlay = () => {
+      console.log('VideoPlayer: Can play');
+      setHasError(false);
     };
 
     const handleError = () => {
-      console.error('VideoPlayer: Video error', video.error);
+      const error = video.error;
+      console.error('VideoPlayer: Video error', error);
+      let message = 'Unknown error';
+      if (error) {
+        switch (error.code) {
+          case 1: message = 'Video loading aborted'; break;
+          case 2: message = 'Network error'; break;
+          case 3: message = 'Decoding error'; break;
+          case 4: message = 'Video not supported'; break;
+          default: message = error.message || 'Unknown error';
+        }
+      }
+      setErrorMessage(message);
       setHasError(true);
     };
 
     video.addEventListener('timeupdate', handleTimeUpdate);
     video.addEventListener('loadedmetadata', handleLoadedMetadata);
+    video.addEventListener('canplay', handleCanPlay);
     video.addEventListener('error', handleError);
 
     return () => {
       video.removeEventListener('timeupdate', handleTimeUpdate);
       video.removeEventListener('loadedmetadata', handleLoadedMetadata);
+      video.removeEventListener('canplay', handleCanPlay);
       video.removeEventListener('error', handleError);
     };
-  }, [onTimeUpdate, src]);
+  }, [src, onTimeUpdate]);
 
   const togglePlay = () => {
     if (videoRef.current) {
@@ -88,10 +113,20 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
       onMouseLeave={() => setShowControls(false)}
     >
       {hasError ? (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800">
+        <div className="absolute inset-0 flex flex-col items-center justify-center bg-gradient-to-br from-gray-900 to-gray-800 p-4">
           <FiAlertCircle className="text-4xl text-red-400 mb-2" />
           <p className="text-white/60 text-sm">Video cannot be played</p>
-          <p className="text-white/40 text-xs mt-1">Check console for details</p>
+          <p className="text-red-400 text-xs mt-1 text-center max-w-xs">{errorMessage}</p>
+          <button 
+            onClick={() => {
+              setHasError(false);
+              setErrorMessage('');
+              videoRef.current?.load();
+            }}
+            className="mt-4 px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white text-sm rounded-lg transition-colors"
+          >
+            Retry
+          </button>
         </div>
       ) : (
         <>
@@ -100,7 +135,9 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({ src, onTimeUpdate }) =
         src={src}
         crossOrigin="anonymous"
         controls
-        preload="metadata"
+        preload="auto"
+        playsInline
+        muted
         className="w-full h-full object-contain"
         onClick={togglePlay}
       />
