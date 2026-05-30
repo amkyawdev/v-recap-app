@@ -21,12 +21,12 @@ jobs:
         with:
           node-version: 22
 
-      # ၃။ Java (JDK 17) ကို Setup လုပ်ခြင်း (Android Gradle Build အတွက် လိုအပ်ချက်)
-      - name: Setup Java (JDK 17)
+      # ၃။ Java (JDK 21) ကို Setup လုပ်ခြင်း (Android Gradle Build အတွက် လိုအပ်ချက် - Capacitor Android အတွက် Java 21 လိုအပ်ပါသည်)
+      - name: Setup Java (JDK 21)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '21'
 
       # ၄။ Project အတွက် လိုအပ်သော Packages များ ထည့်သွင်းခြင်း
       - name: Install Dependencies
