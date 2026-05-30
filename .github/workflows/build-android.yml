@@ -1,49 +1,61 @@
 name: Build Android APK
+
 on:
   push:
-    branches: [ main, master ] # သင့် branch နာမည် ထည့်ရန်
+    branches: [ main, master ] # သင့် Repository ရဲ့ main သို့မဟုတ် master branch ထဲ ကုဒ်ဝင်ရင် အလုပ်လုပ်မည်
+  pull_request:
+    branches: [ main, master ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
+
     steps:
+      # ၁။ GitHub Repository ထဲက ကုဒ်တွေကို Cloud Runner ပေါ် ဆွဲတင်ခြင်း
       - name: Checkout Source Code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      # ၂။ Node.js (Version 22) ကို Setup လုပ်ခြင်း (Capacitor CLI အသစ်အတွက် လိုအပ်ချက်)
+      - name: Setup Node.js (v22)
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
+      # ၃။ Java (JDK 17) ကို Setup လုပ်ခြင်း (Android Gradle Build အတွက် လိုအပ်ချက်)
       - name: Setup Java (JDK 17)
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
+      # ၄။ Project အတွက် လိုအပ်သော Packages များ ထည့်သွင်းခြင်း
       - name: Install Dependencies
         run: |
           npm install
           npm install @capacitor/core @capacitor/cli @capacitor/android
 
+      # ၅။ React + TypeScript Web App ကို Build ဆွဲခြင်း
       - name: Build React Web App
         run: npm run build
 
+      # ၆။ Capacitor ကို Initialize လုပ်ပြီး Android Platform နှင့် Sync လုပ်ခြင်း
       - name: Sync Capacitor Android
         run: |
           npx cap init "V-Recap" "com.amkyawdev.vrecap" --web-dir=dist || true
           npx cap add android || true
           npx cap sync
 
+      # ၇။ Android Studio မလိုဘဲ Gradle ဖြင့် APK ထုတ်ခြင်း
       - name: Build APK with Gradle
         run: |
           cd android
           chmod +x gradlew
           ./gradlew assembleDebug
 
+      # ၈။ ထွက်လာသော APK ဖိုင်ကို GitHub Actions Page တွင် ဒေါင်းလုဒ်ဆွဲနိုင်ရန် တင်ပေးခြင်း
       - name: Upload APK Result
         uses: actions/upload-artifact@v4
         with:
           name: app-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
-          
+        
