@@ -127,20 +127,22 @@ const MainPage: React.FC = () => {
           <p className="text-white/60">Create amazing videos with ease</p>
         </motion.div>
 
-        {/* Upload Zone - Mobile Button Style */}
+        {/* Upload Zone - Button with Drop Support */}
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.1 }}
           className="mb-6"
         >
-          <label className="block cursor-pointer w-full">
-            <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-5 px-6 rounded-2xl text-center transition-all duration-300 shadow-xl active:scale-95 flex items-center justify-center gap-3">
-              <FiUpload className="text-2xl" />
-              <span className="text-lg">Upload Video</span>
-            </div>
-            <input {...getInputProps()} className="hidden" />
-          </label>
+          <div {...getRootProps()}>
+            <label className="block cursor-pointer w-full">
+              <div className="w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-500 hover:to-purple-500 text-white font-bold py-5 px-6 rounded-2xl text-center transition-all duration-300 shadow-xl active:scale-95 flex items-center justify-center gap-3">
+                <FiUpload className="text-2xl" />
+                <span className="text-lg">Upload Video</span>
+              </div>
+              <input {...getInputProps()} className="hidden" />
+            </label>
+          </div>
           <p className="text-white/40 text-xs text-center mt-3">
             MP4, MOV, AVI, WebM, MKV (Max 500MB)
           </p>
